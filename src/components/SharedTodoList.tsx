@@ -1,0 +1,174 @@
+import { useState, useMemo } from 'react'
+import type { Todo, Assignee } from '../types'
+import { useTodoStore } from '../store/todoStore'
+import { useToastStore } from '../store/toastStore'
+import TodoItemWithComments from './TodoItemWithComments'
+import TodoForm from './TodoForm'
+import SkeletonTodo from './SkeletonTodo'
+import ProgressBar from './ProgressBar'
+
+const ASSIGNEE_LABELS: Record<Assignee, string> = {
+  me: '나',
+  partner: '상대방',
+  both: '함께',
+}
+
+interface CombinedItem {
+  todo: Todo
+  isOwn: boolean
+}
+
+function sortCombined(items: CombinedItem[]): CombinedItem[] {
+  return [...items].sort((a, b) => {
+    // 1. 미완료 먼저
+    if (a.todo.isCompleted !== b.todo.isCompleted) {
+      return a.todo.isCompleted ? 1 : -1
+    }
+    // 2. 마감일 빠른 순 (없으면 뒤로)
+    const da = a.todo.dueDate
+    const db = b.todo.dueDate
+    if (da && db) return da.localeCompare(db)
+    if (da) return -1
+    if (db) return 1
+    // 3. 최신 등록 순
+    const ca = a.todo.createdAt?.toMillis?.() ?? 0
+    const cb = b.todo.createdAt?.toMillis?.() ?? 0
+    return cb - ca
+  })
+}
+
+interface SharedTodoListProps {
+  myTodos: Todo[]
+  partnerTodos: Todo[]
+  myUserId: string
+  partnerName?: string
+  isLoading?: boolean
+}
+
+export default function SharedTodoList({
+  myTodos,
+  partnerTodos,
+  partnerName,
+  isLoading = false,
+}: SharedTodoListProps) {
+  const { updateTodo } = useTodoStore()
+  const { showToast } = useToastStore()
+  const [editingTodo, setEditingTodo] = useState<Todo | null>(null)
+
+  const combined = useMemo<CombinedItem[]>(() => {
+    const my = myTodos.map((t) => ({ todo: t, isOwn: true }))
+    const partner = partnerTodos.map((t) => ({ todo: t, isOwn: false }))
+    return sortCombined([...my, ...partner])
+  }, [myTodos, partnerTodos])
+
+  // 진행률 계산
+  const myCompleted = myTodos.filter((t) => t.isCompleted).length
+  const myTotal = myTodos.length
+  const myPct = myTotal === 0 ? 0 : Math.round((myCompleted / myTotal) * 100)
+
+  const partnerCompleted = partnerTodos.filter((t) => t.isCompleted).length
+  const partnerTotal = partnerTodos.length
+  const partnerPct = partnerTotal === 0 ? 0 : Math.round((partnerCompleted / partnerTotal) * 100)
+
+  const handleEdit = async (
+    title: string,
+    category: Todo['category'],
+    assignee: Assignee | null,
+    dueDate: string | null,
+  ) => {
+    if (!editingTodo) return
+    try {
+      await updateTodo(editingTodo.id, { title, category, assignee, dueDate })
+      setEditingTodo(null)
+      showToast('할일을 수정했습니다 ✏️')
+    } catch {
+      showToast('수정에 실패했습니다', 'error')
+    }
+  }
+
+  const showSkeleton = isLoading && combined.length === 0
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* 우리의 진행률 카드 */}
+      {(myTotal > 0 || partnerTotal > 0) && (
+        <div className="bg-white rounded-2xl p-5 border border-orange-100 flex flex-col gap-4">
+          <span className="text-sm font-semibold text-gray-700">우리의 진행률</span>
+          <div className="flex flex-col gap-3">
+            <ProgressBar
+              percentage={myPct}
+              label="나"
+              color="#f97316"
+              completed={myCompleted}
+              total={myTotal}
+              size="sm"
+            />
+            <ProgressBar
+              percentage={partnerPct}
+              label={partnerName ?? '상대방'}
+              color="#ec4899"
+              completed={partnerCompleted}
+              total={partnerTotal}
+              size="sm"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 할일 목록 */}
+      <div className="flex flex-col gap-2">
+        {showSkeleton ? (
+          <div className="flex flex-col gap-2">
+            {[1, 2, 3].map((i) => <SkeletonTodo key={i} />)}
+          </div>
+        ) : combined.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-14 gap-3 text-center">
+            <span className="text-5xl" aria-hidden="true">💑</span>
+            <div>
+              <p className="text-sm font-medium text-gray-500">아직 우리 할일이 없어요</p>
+              <p className="text-xs text-gray-400 mt-1">함께할 일을 추가해보세요 💑</p>
+            </div>
+          </div>
+        ) : (
+          combined.map(({ todo, isOwn }) =>
+            editingTodo?.id === todo.id ? (
+              <TodoForm
+                key={todo.id}
+                initialData={{
+                  title: todo.title,
+                  category: todo.category,
+                  assignee: todo.assignee,
+                  dueDate: todo.dueDate,
+                }}
+                onSubmit={handleEdit}
+                onCancel={() => setEditingTodo(null)}
+              />
+            ) : (
+              <div key={todo.id} className="flex flex-col">
+                {/* 소유자 + 담당자 배지 */}
+                <div className="flex items-center gap-2 mb-0.5 px-1">
+                  <span
+                    className={`text-[10px] font-semibold px-2 py-0.5 rounded-full
+                      ${isOwn ? 'bg-orange-100 text-orange-600' : 'bg-rose-100 text-rose-600'}`}
+                  >
+                    {isOwn ? '나' : (partnerName ?? '상대방')}
+                  </span>
+                  {todo.assignee && (
+                    <span className="text-[10px] text-gray-400">
+                      담당: {ASSIGNEE_LABELS[todo.assignee]}
+                    </span>
+                  )}
+                </div>
+                <TodoItemWithComments
+                  todo={todo}
+                  isReadOnly={!isOwn}
+                  onEdit={isOwn ? (t) => setEditingTodo(t) : () => {}}
+                />
+              </div>
+            )
+          )
+        )}
+      </div>
+    </div>
+  )
+}

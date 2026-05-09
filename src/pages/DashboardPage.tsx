@@ -4,20 +4,21 @@ import { useTodoStore } from '../store/todoStore'
 import { useCommentStore } from '../store/commentStore'
 import ProgressDashboard from '../components/ProgressDashboard'
 import TodoList from '../components/TodoList'
+import SharedTodoList from '../components/SharedTodoList'
 import Header from '../components/Header'
 import InvitePanel from '../components/InvitePanel'
 import CalendarView from '../components/CalendarView'
 import DayDetailPanel from '../components/DayDetailPanel'
 import Footer from '../components/Footer'
 
-type Tab = 'calendar' | 'my' | 'partner' | 'invite'
+type Tab = 'shared' | 'calendar' | 'my' | 'partner' | 'invite'
 
 export default function DashboardPage() {
   const { currentUser, partner } = useAuthStore()
   const { myTodos, partnerTodos, isLoading: todoIsLoading, subscribeMyTodos, subscribePartnerTodos } = useTodoStore()
   const { commentsByTodoId, subscribeComments, unsubscribeAll } = useCommentStore()
 
-  const [activeTab, setActiveTab] = useState<Tab>('calendar')
+  const [activeTab, setActiveTab] = useState<Tab>('shared')
   const [lastSeenPartnerCommentCount, setLastSeenPartnerCommentCount] = useState(0)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
@@ -58,8 +59,8 @@ export default function DashboardPage() {
     setLastSeenPartnerCommentCount(partnerCommentCount)
   }
 
-  // 내 탭에 있을 때만 뱃지 표시
-  const newCommentBadge = activeTab === 'my'
+  // 내 할일 탭 또는 우리 할일 탭에 있을 때 뱃지 표시
+  const newCommentBadge = (activeTab === 'my' || activeTab === 'shared')
     ? Math.max(0, partnerCommentCount - lastSeenPartnerCommentCount)
     : 0
 
@@ -72,10 +73,34 @@ export default function DashboardPage() {
       {/* 탭 */}
       <div className="bg-white border-b border-orange-100">
         <div className="max-w-2xl mx-auto px-4">
-          <div className="flex">
+          <div className="flex overflow-x-auto scrollbar-hide">
+            {/* 우리 할일 (기본 탭) */}
+            <button
+              onClick={() => setActiveTab('shared')}
+              className={`relative min-h-[44px] flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-all
+                ${activeTab === 'shared'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+            >
+              우리 할일
+              <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full
+                ${activeTab === 'shared' ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-500'}`}>
+                {myTodos.length + partnerTodos.length}
+              </span>
+              {newCommentBadge > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1
+                  bg-rose-500 text-white text-[10px] font-bold rounded-full
+                  flex items-center justify-center animate-pulse">
+                  {newCommentBadge > 99 ? '99+' : newCommentBadge}
+                </span>
+              )}
+            </button>
+
+            {/* 달력 */}
             <button
               onClick={() => setActiveTab('calendar')}
-              className={`min-h-[44px] px-5 py-3 text-sm font-medium border-b-2 transition-all
+              className={`min-h-[44px] flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-all
                 ${activeTab === 'calendar'
                   ? 'border-orange-500 text-orange-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -83,9 +108,11 @@ export default function DashboardPage() {
             >
               📅 달력
             </button>
+
+            {/* 내 할일 */}
             <button
               onClick={() => setActiveTab('my')}
-              className={`min-h-[44px] px-5 py-3 text-sm font-medium border-b-2 transition-all
+              className={`min-h-[44px] flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-all
                 ${activeTab === 'my'
                   ? 'border-orange-500 text-orange-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -98,10 +125,11 @@ export default function DashboardPage() {
               </span>
             </button>
 
+            {/* 상대방 할일 / 파트너 초대 */}
             {partner ? (
               <button
                 onClick={handlePartnerTabClick}
-                className={`relative min-h-[44px] px-5 py-3 text-sm font-medium border-b-2 transition-all
+                className={`relative min-h-[44px] flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-all
                   ${activeTab === 'partner'
                     ? 'border-orange-500 text-orange-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -112,7 +140,7 @@ export default function DashboardPage() {
                   ${activeTab === 'partner' ? 'bg-orange-100 text-orange-600' : 'bg-gray-100 text-gray-500'}`}>
                   {partnerTodos.length}
                 </span>
-                {newCommentBadge > 0 && (
+                {newCommentBadge > 0 && activeTab !== 'shared' && (
                   <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1
                     bg-rose-500 text-white text-[10px] font-bold rounded-full
                     flex items-center justify-center animate-pulse">
@@ -123,7 +151,7 @@ export default function DashboardPage() {
             ) : (
               <button
                 onClick={() => setActiveTab('invite')}
-                className={`min-h-[44px] px-5 py-3 text-sm font-medium border-b-2 transition-all
+                className={`min-h-[44px] flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 transition-all
                   ${activeTab === 'invite'
                     ? 'border-orange-500 text-orange-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700'
@@ -149,6 +177,15 @@ export default function DashboardPage() {
       )}
 
       <main className="max-w-2xl mx-auto px-4 py-6 pb-24 sm:pb-6 flex flex-col gap-5">
+        {activeTab === 'shared' && (
+          <SharedTodoList
+            myTodos={myTodos}
+            partnerTodos={partnerTodos}
+            myUserId={currentUser.uid}
+            partnerName={partner?.displayName}
+            isLoading={todoIsLoading}
+          />
+        )}
         {activeTab === 'calendar' && (
           <CalendarView
             myTodos={myTodos}
