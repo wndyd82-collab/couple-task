@@ -123,27 +123,22 @@ export default function ProgressDashboard({ todos, ownerName, partnerTodos, part
     )
   }
 
-  const barColor = isPartner ? '#ec4899' : '#f97316'
-  const borderClass = isPartner ? 'border-rose-100' : 'border-orange-100'
+  const msg = isPartner
+    ? { main: getPartnerMessage(overall.percentage, ownerName) }
+    : getMotivationalMessage(overall.percentage)
 
   return (
-    <div className={`bg-white rounded-2xl p-6 border ${borderClass} flex flex-col gap-5`}>
+    <div className="bg-white rounded-2xl p-6 border border-orange-100 flex flex-col gap-5">
       <div>
         <div className="flex items-baseline gap-2 mb-3">
           <span className="text-base font-semibold text-gray-700">전체 진행률</span>
           <span className="text-sm text-gray-400">{overall.completed}/{overall.total} 완료</span>
         </div>
-        <ProgressBar percentage={overall.percentage} label="" color={barColor} size="lg" />
+        <ProgressBar percentage={overall.percentage} label="" color="#f97316" size="lg" />
         <div className="text-center mt-2">
-          {isPartner ? (
-            <p className="text-xs text-rose-400">{getPartnerMessage(overall.percentage, ownerName)}</p>
-          ) : (
-            <>
-              <p className="text-xs text-gray-400">{getMotivationalMessage(overall.percentage).main}</p>
-              {getMotivationalMessage(overall.percentage).sub && (
-                <p className="text-xs text-rose-400 mt-0.5">{getMotivationalMessage(overall.percentage).sub}</p>
-              )}
-            </>
+          <p className="text-xs text-gray-400">{msg.main}</p>
+          {msg.sub && (
+            <p className="text-xs text-rose-400 mt-0.5">{msg.sub}</p>
           )}
         </div>
       </div>
