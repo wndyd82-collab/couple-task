@@ -2,12 +2,7 @@ import { useState } from 'react'
 import type { Todo } from '../types'
 import { useTodoStore } from '../store/todoStore'
 import { useToastStore } from '../store/toastStore'
-
-const CATEGORY_STYLES = {
-  업무: 'bg-blue-50 text-blue-600 border-blue-200',
-  개인: 'bg-green-50 text-green-600 border-green-200',
-  공부: 'bg-purple-50 text-purple-600 border-purple-200',
-} as const
+import { CATEGORY_CONFIG } from '../lib/categoryConfig'
 
 interface TodoItemProps {
   todo: Todo
@@ -82,7 +77,7 @@ export default function TodoItem({ todo, isReadOnly, onEdit, standalone = true }
         </p>
         <span
           className={`inline-block mt-1.5 text-xs font-medium px-2 py-0.5 rounded-full border
-            ${CATEGORY_STYLES[todo.category]}`}
+            ${(CATEGORY_CONFIG[todo.category] ?? CATEGORY_CONFIG['기타']).chipStyle}`}
           aria-label={`카테고리: ${todo.category}`}
         >
           {todo.category}

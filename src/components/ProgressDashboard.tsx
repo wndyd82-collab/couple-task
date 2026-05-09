@@ -1,12 +1,7 @@
 import type { Todo } from '../types'
 import { calcOverallProgress, calcCategoryProgress } from '../lib/progressUtils'
 import ProgressBar from './ProgressBar'
-
-const CATEGORY_COLORS = {
-  업무: '#3b82f6',  // blue-500
-  개인: '#22c55e',  // green-500
-  공부: '#a855f7',  // purple-500
-} as const
+import { CATEGORY_CONFIG } from '../lib/categoryConfig'
 
 interface ProgressDashboardProps {
   todos: Todo[]
@@ -47,13 +42,13 @@ export default function ProgressDashboard({ todos, ownerName }: ProgressDashboar
       {/* 카테고리별 */}
       <div className="border-t border-gray-50 pt-4 flex flex-col gap-3">
         <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">카테고리별</span>
-        {(Object.entries(byCategory) as [keyof typeof CATEGORY_COLORS, (typeof byCategory)[keyof typeof byCategory]][]).map(
+        {(Object.entries(byCategory) as [keyof typeof CATEGORY_CONFIG, (typeof byCategory)[keyof typeof byCategory]][]).map(
           ([cat, stat]) => (
             <ProgressBar
               key={cat}
               percentage={stat.percentage}
               label={cat}
-              color={CATEGORY_COLORS[cat]}
+              color={CATEGORY_CONFIG[cat].hexColor}
               completed={stat.completed}
               total={stat.total}
               size="sm"

@@ -1,4 +1,5 @@
 import type { Todo } from '../types'
+import { CATEGORIES } from './categoryConfig'
 
 export interface ProgressStat {
   completed: number
@@ -13,20 +14,13 @@ export function calcOverallProgress(todos: Todo[]): ProgressStat {
   return { completed, total, percentage }
 }
 
-export interface CategoryProgress {
-  업무: ProgressStat
-  개인: ProgressStat
-  공부: ProgressStat
-}
+export type CategoryProgress = Record<(typeof CATEGORIES)[number], ProgressStat>
 
 export function calcCategoryProgress(todos: Todo[]): CategoryProgress {
-  const categories = ['업무', '개인', '공부'] as const
   const result = {} as CategoryProgress
-
-  for (const cat of categories) {
+  for (const cat of CATEGORIES) {
     const catTodos = todos.filter((t) => t.category === cat)
     result[cat] = calcOverallProgress(catTodos)
   }
-
   return result
 }

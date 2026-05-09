@@ -11,7 +11,7 @@ export interface Todo {
   id: string
   userId: string
   title: string
-  category: '업무' | '개인' | '공부'
+  category: '살림' | '데이트' | '건강' | '약속' | '기타'
   isCompleted: boolean
   dueDate?: string
   createdAt: Timestamp

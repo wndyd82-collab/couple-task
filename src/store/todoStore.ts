@@ -15,7 +15,7 @@ import {
 import { db } from '../lib/firebase'
 import type { Todo } from '../types'
 
-type Category = '전체' | '업무' | '개인' | '공부'
+type Category = '전체' | '살림' | '데이트' | '건강' | '약속' | '기타'
 
 interface TodoState {
   myTodos: Todo[]

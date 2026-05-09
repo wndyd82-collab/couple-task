@@ -1,32 +1,17 @@
 import { useState, type FormEvent, useEffect } from 'react'
 import type { Todo } from '../types'
 import Button from './Button'
-
-type TodoCategory = '업무' | '개인' | '공부'
-
-const CATEGORIES: TodoCategory[] = ['업무', '개인', '공부']
-
-const CATEGORY_ACTIVE = {
-  업무: 'bg-blue-500 text-white border-blue-500',
-  개인: 'bg-green-500 text-white border-green-500',
-  공부: 'bg-purple-500 text-white border-purple-500',
-} as const
-
-const CATEGORY_IDLE = {
-  업무: 'border-blue-200 text-blue-500 hover:bg-blue-50',
-  개인: 'border-green-200 text-green-500 hover:bg-green-50',
-  공부: 'border-purple-200 text-purple-500 hover:bg-purple-50',
-} as const
+import { CATEGORIES, CATEGORY_CONFIG } from '../lib/categoryConfig'
 
 interface TodoFormProps {
   initialData?: Pick<Todo, 'title' | 'category'>
-  onSubmit: (title: string, category: TodoCategory) => Promise<void>
+  onSubmit: (title: string, category: Todo['category']) => Promise<void>
   onCancel: () => void
 }
 
 export default function TodoForm({ initialData, onSubmit, onCancel }: TodoFormProps) {
   const [title, setTitle] = useState(initialData?.title ?? '')
-  const [category, setCategory] = useState<TodoCategory | ''>(initialData?.category ?? '')
+  const [category, setCategory] = useState<Todo['category'] | ''>(initialData?.category ?? '')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -91,18 +76,21 @@ export default function TodoForm({ initialData, onSubmit, onCancel }: TodoFormPr
       {/* 카테고리 선택 */}
       <div className="flex flex-col gap-1">
         <label className="text-sm font-medium text-gray-700">카테고리</label>
-        <div className="flex gap-2">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              onClick={() => setCategory(cat)}
-              className={`flex-1 min-h-[44px] py-2 rounded-xl border text-sm font-medium transition-all
-                ${category === cat ? CATEGORY_ACTIVE[cat] : CATEGORY_IDLE[cat]}`}
-            >
-              {cat}
-            </button>
-          ))}
+        <div className="flex flex-wrap gap-2">
+          {CATEGORIES.map((cat) => {
+            const cfg = CATEGORY_CONFIG[cat]
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setCategory(cat)}
+                className={`flex-1 min-w-[60px] min-h-[44px] py-2 rounded-xl border text-sm font-medium transition-all
+                  ${category === cat ? cfg.activeBtn : cfg.idleBtn}`}
+              >
+                {cat}
+              </button>
+            )
+          })}
         </div>
       </div>
 

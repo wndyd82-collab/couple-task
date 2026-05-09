@@ -5,6 +5,7 @@ import { useToastStore } from '../store/toastStore'
 import TodoItemWithComments from './TodoItemWithComments'
 import TodoForm from './TodoForm'
 import SkeletonTodo from './SkeletonTodo'
+import { CATEGORIES, CATEGORY_CONFIG } from '../lib/categoryConfig'
 
 const WEEKDAY = ['일', '월', '화', '수', '목', '금', '토']
 
@@ -48,19 +49,17 @@ function groupByDate(todos: Todo[]): { label: string; dateStr: string; items: To
   return sorted
 }
 
-type FilterCategory = '전체' | '업무' | '개인' | '공부'
+type FilterCategory = '전체' | (typeof CATEGORIES)[number]
 
-const FILTERS: FilterCategory[] = ['전체', '업무', '개인', '공부']
+const FILTERS: FilterCategory[] = ['전체', ...CATEGORIES]
 
 const FILTER_ACTIVE: Record<FilterCategory, string> = {
   전체: 'bg-orange-500 text-white border-orange-500',
-  업무: 'bg-blue-500 text-white border-blue-500',
-  개인: 'bg-green-500 text-white border-green-500',
-  공부: 'bg-purple-500 text-white border-purple-500',
-}
+  ...Object.fromEntries(CATEGORIES.map((cat) => [cat, CATEGORY_CONFIG[cat].activeBtn])),
+} as Record<FilterCategory, string>
 
 const EMPTY_ICONS: Record<FilterCategory, string> = {
-  전체: '✨', 업무: '💼', 개인: '🌿', 공부: '📚',
+  전체: '✨', 살림: '🏠', 데이트: '💑', 건강: '💪', 약속: '🤝', 기타: '📌',
 }
 
 interface TodoListProps {

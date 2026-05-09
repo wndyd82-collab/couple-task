@@ -1,14 +1,9 @@
 import { useState } from 'react'
 import type { Todo } from '../types'
 import { getHoliday } from '../lib/holidays'
+import { CATEGORY_CONFIG } from '../lib/categoryConfig'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
-
-const CATEGORY_COLOR: Record<Todo['category'], string> = {
-  업무: 'bg-blue-100 text-blue-700',
-  개인: 'bg-green-100 text-green-700',
-  공부: 'bg-purple-100 text-purple-700',
-}
 
 interface CalendarViewProps {
   myTodos: Todo[]
@@ -136,7 +131,7 @@ export default function CalendarView({ myTodos, partnerTodos, partnerName, onSel
                     className={`text-[10px] leading-tight px-1 py-0.5 rounded truncate
                       ${isPartner
                         ? 'bg-rose-100 text-rose-700'
-                        : CATEGORY_COLOR[todo.category]
+                        : (CATEGORY_CONFIG[todo.category] ?? CATEGORY_CONFIG['기타']).color
                       }
                       ${todo.isCompleted ? 'line-through opacity-50' : ''}`}
                   >
@@ -154,15 +149,12 @@ export default function CalendarView({ myTodos, partnerTodos, partnerName, onSel
 
       {/* 범례 */}
       <div className="flex flex-wrap gap-3 px-4 py-3 border-t border-gray-100">
-        <div className="flex items-center gap-1 text-[11px] text-gray-400">
-          <span className="w-2.5 h-2.5 rounded-sm bg-blue-100 border border-blue-200" />업무
-        </div>
-        <div className="flex items-center gap-1 text-[11px] text-gray-400">
-          <span className="w-2.5 h-2.5 rounded-sm bg-green-100 border border-green-200" />개인
-        </div>
-        <div className="flex items-center gap-1 text-[11px] text-gray-400">
-          <span className="w-2.5 h-2.5 rounded-sm bg-purple-100 border border-purple-200" />공부
-        </div>
+        {(Object.entries(CATEGORY_CONFIG) as [keyof typeof CATEGORY_CONFIG, typeof CATEGORY_CONFIG[keyof typeof CATEGORY_CONFIG]][]).map(([cat, cfg]) => (
+          <div key={cat} className="flex items-center gap-1 text-[11px] text-gray-400">
+            <span className={`w-2.5 h-2.5 rounded-sm ${cfg.color}`} />
+            {cat}
+          </div>
+        ))}
         <div className="flex items-center gap-1 text-[11px] text-gray-400">
           <span className="w-2.5 h-2.5 rounded-sm bg-rose-100 border border-rose-200" />{partnerName ?? '파트너'}
         </div>
