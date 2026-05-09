@@ -21,6 +21,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<Tab>('shared')
   const [lastSeenPartnerCommentCount, setLastSeenPartnerCommentCount] = useState(0)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [desktopCalendarOpen, setDesktopCalendarOpen] = useState(true)
 
   // 할일 구독
   useEffect(() => {
@@ -70,8 +71,8 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex flex-col">
       <Header />
 
-      {/* 탭 */}
-      <div className="bg-white border-b border-orange-100">
+      {/* 탭 — 모바일 전용 */}
+      <div className="lg:hidden bg-white border-b border-orange-100">
         <div className="max-w-2xl mx-auto px-4">
           <div className="flex overflow-x-auto scrollbar-hide">
             {/* 우리 할일 (기본 탭) */}
@@ -176,7 +177,7 @@ export default function DashboardPage() {
         />
       )}
 
-      <main className="max-w-2xl mx-auto px-4 py-6 pb-24 sm:pb-6 flex flex-col gap-5">
+      <main className="lg:hidden max-w-2xl mx-auto px-4 py-6 pb-24 sm:pb-6 flex flex-col gap-5">
         {activeTab === 'shared' && (
           <>
             <ProgressDashboard
@@ -230,6 +231,71 @@ export default function DashboardPage() {
           <InvitePanel />
         )}
       </main>
+      {/* 데스크톱 2단 레이아웃 */}
+      <div className="hidden lg:grid lg:grid-cols-2 gap-6 max-w-[1280px] mx-auto w-full px-6 py-6 flex-1 items-start">
+        {/* 왼쪽: 진행률 + 내 할일 */}
+        <div className="flex flex-col gap-5">
+          <ProgressDashboard
+            todos={myTodos}
+            ownerName={currentUser.displayName}
+            partnerTodos={partnerTodos}
+            partnerName={partner?.displayName}
+          />
+          <TodoList
+            todos={myTodos}
+            userId={currentUser.uid}
+            isReadOnly={false}
+            isLoading={todoIsLoading}
+          />
+        </div>
+
+        {/* 오른쪽: 달력(접기 가능) + 파트너 할일 */}
+        <div className="flex flex-col gap-5">
+          {/* 달력 */}
+          <div className="bg-white rounded-2xl border border-orange-100 overflow-hidden">
+            <button
+              onClick={() => setDesktopCalendarOpen((p) => !p)}
+              className="w-full flex items-center justify-between px-5 py-3 text-sm font-medium text-gray-700 hover:bg-orange-50 transition-colors"
+            >
+              <span>📅 달력</span>
+              <svg
+                className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${desktopCalendarOpen ? 'rotate-180' : ''}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {desktopCalendarOpen && (
+              <div className="px-4 pb-4">
+                <CalendarView
+                  myTodos={myTodos}
+                  partnerTodos={partnerTodos}
+                  partnerName={partner?.displayName}
+                  onSelectDate={setSelectedDate}
+                  selectedDate={selectedDate}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* 파트너 할일 or 초대 */}
+          {partner ? (
+            <>
+              <ProgressDashboard todos={partnerTodos} ownerName={partner.displayName} />
+              <TodoList
+                todos={partnerTodos}
+                userId={partner.uid}
+                isReadOnly={true}
+                ownerName={partner.displayName}
+                isLoading={todoIsLoading}
+              />
+            </>
+          ) : (
+            <InvitePanel />
+          )}
+        </div>
+      </div>
+
       <Footer />
     </div>
   )
