@@ -29,6 +29,7 @@ interface TodoState {
   updateTodo: (id: string, data: Partial<Pick<Todo, 'title' | 'category' | 'assignee' | 'dueDate'>>) => Promise<void>
   toggleComplete: (id: string, currentStatus: boolean) => Promise<void>
   deleteTodo: (id: string) => Promise<void>
+  sendThankYou: (todoId: string, userId: string) => Promise<void>
   setFilter: (category: Category) => void
 }
 
@@ -96,6 +97,12 @@ export const useTodoStore = create<TodoState>((set) => ({
 
   deleteTodo: async (id) => {
     await deleteDoc(doc(db, 'todos', id))
+  },
+
+  sendThankYou: async (todoId, userId) => {
+    await updateDoc(doc(db, 'todos', todoId), {
+      thankYou: { userId, at: serverTimestamp() },
+    })
   },
 
   setFilter: (category) => set({ activeFilter: category }),

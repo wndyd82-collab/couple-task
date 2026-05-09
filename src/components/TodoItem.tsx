@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Todo, Assignee } from '../types'
 import { useTodoStore } from '../store/todoStore'
 import { useToastStore } from '../store/toastStore'
+import { useAuthStore } from '../store/authStore'
 import { CATEGORY_CONFIG } from '../lib/categoryConfig'
 import { dDay, formatDueDate, getDDayLabel } from '../lib/dateUtils'
 
@@ -82,10 +83,27 @@ interface TodoItemProps {
 }
 
 export default function TodoItem({ todo, isReadOnly, onEdit, standalone = true, partnerName }: TodoItemProps) {
-  const { toggleComplete, deleteTodo } = useTodoStore()
+  const { toggleComplete, deleteTodo, sendThankYou } = useTodoStore()
   const { showToast } = useToastStore()
+  const { currentUser } = useAuthStore()
   const [deleting, setDeleting] = useState(false)
   const [toggling, setToggling] = useState(false)
+  const [thanking, setThanking] = useState(false)
+
+  const alreadyThanked = !!todo.thankYou
+
+  const handleThankYou = async () => {
+    if (!currentUser || alreadyThanked || thanking) return
+    setThanking(true)
+    try {
+      await sendThankYou(todo.id, currentUser.uid)
+      showToast('💛 고마움을 전달했어요!')
+    } catch {
+      showToast('전송에 실패했습니다', 'error')
+    } finally {
+      setThanking(false)
+    }
+  }
 
   const handleToggle = async () => {
     if (isReadOnly || toggling) return
@@ -160,6 +178,28 @@ export default function TodoItem({ todo, isReadOnly, onEdit, standalone = true, 
           </span>
           <DueDateBadge dueDate={todo.dueDate} />
         </div>
+
+        {/* 고마워요 버튼 — 파트너 완료 할일에만 표시 */}
+        {isReadOnly && todo.isCompleted && (
+          <button
+            onClick={handleThankYou}
+            disabled={alreadyThanked || thanking}
+            className={`mt-2 inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium
+              transition-all border
+              ${alreadyThanked
+                ? 'bg-amber-50 text-amber-400 border-amber-200 cursor-default'
+                : 'bg-white text-amber-600 border-amber-300 hover:bg-amber-50 hover:border-amber-400 active:scale-95'
+              }`}
+            aria-label={alreadyThanked ? '이미 고마워했어요' : '고마워요 전달'}
+          >
+            {thanking ? (
+              <span className="w-3 h-3 border-2 border-amber-300 border-t-amber-500 rounded-full animate-spin" />
+            ) : (
+              <span aria-hidden="true">💛</span>
+            )}
+            {alreadyThanked ? '고마워했어요' : '고마워요'}
+          </button>
+        )}
       </div>
 
       {/* 액션 버튼 — 내 할일만 노출 */}

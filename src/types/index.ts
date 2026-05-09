@@ -17,6 +17,7 @@ export interface Todo {
   assignee?: Assignee | null
   isCompleted: boolean
   dueDate?: string | null
+  thankYou?: { userId: string; at: Timestamp } | null
   createdAt: Timestamp
   updatedAt: Timestamp
 }
