@@ -24,3 +24,7 @@ export function calcCategoryProgress(todos: Todo[]): CategoryProgress {
   }
   return result
 }
+
+export function calcCombinedProgress(myTodos: Todo[], partnerTodos: Todo[]): ProgressStat {
+  return calcOverallProgress([...myTodos, ...partnerTodos])
+}

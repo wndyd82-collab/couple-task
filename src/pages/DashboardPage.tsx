@@ -178,13 +178,21 @@ export default function DashboardPage() {
 
       <main className="max-w-2xl mx-auto px-4 py-6 pb-24 sm:pb-6 flex flex-col gap-5">
         {activeTab === 'shared' && (
-          <SharedTodoList
-            myTodos={myTodos}
-            partnerTodos={partnerTodos}
-            myUserId={currentUser.uid}
-            partnerName={partner?.displayName}
-            isLoading={todoIsLoading}
-          />
+          <>
+            <ProgressDashboard
+              todos={myTodos}
+              ownerName={currentUser.displayName}
+              partnerTodos={partnerTodos}
+              partnerName={partner?.displayName}
+            />
+            <SharedTodoList
+              myTodos={myTodos}
+              partnerTodos={partnerTodos}
+              myUserId={currentUser.uid}
+              partnerName={partner?.displayName}
+              isLoading={todoIsLoading}
+            />
+          </>
         )}
         {activeTab === 'calendar' && (
           <CalendarView

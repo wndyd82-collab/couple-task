@@ -5,7 +5,6 @@ import { useToastStore } from '../store/toastStore'
 import TodoItemWithComments from './TodoItemWithComments'
 import TodoForm from './TodoForm'
 import SkeletonTodo from './SkeletonTodo'
-import ProgressBar from './ProgressBar'
 
 const ASSIGNEE_LABELS: Record<Assignee, string> = {
   me: '나',
@@ -61,15 +60,6 @@ export default function SharedTodoList({
     return sortCombined([...my, ...partner])
   }, [myTodos, partnerTodos])
 
-  // 진행률 계산
-  const myCompleted = myTodos.filter((t) => t.isCompleted).length
-  const myTotal = myTodos.length
-  const myPct = myTotal === 0 ? 0 : Math.round((myCompleted / myTotal) * 100)
-
-  const partnerCompleted = partnerTodos.filter((t) => t.isCompleted).length
-  const partnerTotal = partnerTodos.length
-  const partnerPct = partnerTotal === 0 ? 0 : Math.round((partnerCompleted / partnerTotal) * 100)
-
   const handleEdit = async (
     title: string,
     category: Todo['category'],
@@ -90,31 +80,6 @@ export default function SharedTodoList({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 우리의 진행률 카드 */}
-      {(myTotal > 0 || partnerTotal > 0) && (
-        <div className="bg-white rounded-2xl p-5 border border-orange-100 flex flex-col gap-4">
-          <span className="text-sm font-semibold text-gray-700">우리의 진행률</span>
-          <div className="flex flex-col gap-3">
-            <ProgressBar
-              percentage={myPct}
-              label="나"
-              color="#f97316"
-              completed={myCompleted}
-              total={myTotal}
-              size="sm"
-            />
-            <ProgressBar
-              percentage={partnerPct}
-              label={partnerName ?? '상대방'}
-              color="#ec4899"
-              completed={partnerCompleted}
-              total={partnerTotal}
-              size="sm"
-            />
-          </div>
-        </div>
-      )}
-
       {/* 할일 목록 */}
       <div className="flex flex-col gap-2">
         {showSkeleton ? (
