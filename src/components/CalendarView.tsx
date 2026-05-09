@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Todo } from '../types'
+import { getHoliday } from '../lib/holidays'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
@@ -99,6 +100,8 @@ export default function CalendarView({ myTodos, partnerTodos, onSelectDate, sele
           const items = todosByDate.get(dateStr) ?? []
           const visible = items.slice(0, MAX_VISIBLE)
           const overflow = items.length - MAX_VISIBLE
+          const holiday = getHoliday(dateStr)
+          const isRed = col === 0 || !!holiday
 
           return (
             <button
@@ -111,12 +114,18 @@ export default function CalendarView({ myTodos, partnerTodos, onSelectDate, sele
               {/* 날짜 숫자 */}
               <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-semibold mb-0.5 self-center
                 ${isToday ? 'bg-orange-500 text-white' : ''}
-                ${!isToday && col === 0 ? 'text-red-400' : ''}
-                ${!isToday && col === 6 ? 'text-blue-400' : ''}
-                ${!isToday && col !== 0 && col !== 6 ? 'text-gray-700' : ''}`}
+                ${!isToday && isRed ? 'text-red-400' : ''}
+                ${!isToday && col === 6 && !holiday ? 'text-blue-400' : ''}
+                ${!isToday && !isRed && col !== 6 ? 'text-gray-700' : ''}`}
               >
                 {day}
               </span>
+              {/* 공휴일 이름 */}
+              {holiday && (
+                <span className="text-[9px] text-red-400 leading-tight text-center truncate px-0.5 mb-0.5">
+                  {holiday}
+                </span>
+              )}
 
               {/* 할일 목록 */}
               <div className="flex flex-col gap-0.5 w-full">
