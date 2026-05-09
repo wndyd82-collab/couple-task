@@ -13,6 +13,7 @@ export interface Todo {
   title: string
   category: '업무' | '개인' | '공부'
   isCompleted: boolean
+  dueDate?: string
   createdAt: Timestamp
   updatedAt: Timestamp
 }

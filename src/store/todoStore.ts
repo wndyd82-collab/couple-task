@@ -25,7 +25,7 @@ interface TodoState {
 
   subscribeMyTodos: (userId: string) => Unsubscribe
   subscribePartnerTodos: (partnerId: string) => Unsubscribe
-  addTodo: (userId: string, title: string, category: Todo['category']) => Promise<void>
+  addTodo: (userId: string, title: string, category: Todo['category'], dueDate?: string) => Promise<void>
   updateTodo: (id: string, data: Partial<Pick<Todo, 'title' | 'category'>>) => Promise<void>
   toggleComplete: (id: string, currentStatus: boolean) => Promise<void>
   deleteTodo: (id: string) => Promise<void>
@@ -67,12 +67,13 @@ export const useTodoStore = create<TodoState>((set) => ({
     return unsubscribe
   },
 
-  addTodo: async (userId, title, category) => {
+  addTodo: async (userId, title, category, dueDate) => {
     await addDoc(collection(db, 'todos'), {
       userId,
       title: title.trim(),
       category,
       isCompleted: false,
+      ...(dueDate ? { dueDate } : {}),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     })

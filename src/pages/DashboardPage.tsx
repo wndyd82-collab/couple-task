@@ -6,16 +6,19 @@ import ProgressDashboard from '../components/ProgressDashboard'
 import TodoList from '../components/TodoList'
 import Header from '../components/Header'
 import InvitePanel from '../components/InvitePanel'
+import CalendarView from '../components/CalendarView'
+import DayDetailPanel from '../components/DayDetailPanel'
 
-type Tab = 'my' | 'partner' | 'invite'
+type Tab = 'calendar' | 'my' | 'partner' | 'invite'
 
 export default function DashboardPage() {
   const { currentUser, partner } = useAuthStore()
   const { myTodos, partnerTodos, isLoading: todoIsLoading, subscribeMyTodos, subscribePartnerTodos } = useTodoStore()
   const { commentsByTodoId, subscribeComments, unsubscribeAll } = useCommentStore()
 
-  const [activeTab, setActiveTab] = useState<Tab>('my')
+  const [activeTab, setActiveTab] = useState<Tab>('calendar')
   const [lastSeenPartnerCommentCount, setLastSeenPartnerCommentCount] = useState(0)
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
   // 할일 구독
   useEffect(() => {
@@ -70,6 +73,16 @@ export default function DashboardPage() {
         <div className="max-w-2xl mx-auto px-4">
           <div className="flex">
             <button
+              onClick={() => setActiveTab('calendar')}
+              className={`min-h-[44px] px-5 py-3 text-sm font-medium border-b-2 transition-all
+                ${activeTab === 'calendar'
+                  ? 'border-orange-500 text-orange-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+            >
+              📅 달력
+            </button>
+            <button
               onClick={() => setActiveTab('my')}
               className={`min-h-[44px] px-5 py-3 text-sm font-medium border-b-2 transition-all
                 ${activeTab === 'my'
@@ -123,7 +136,25 @@ export default function DashboardPage() {
       </div>
 
       {/* 콘텐츠 */}
+      {selectedDate && (
+        <DayDetailPanel
+          date={selectedDate}
+          myTodos={myTodos}
+          partnerTodos={partnerTodos}
+          userId={currentUser.uid}
+          onClose={() => setSelectedDate(null)}
+        />
+      )}
+
       <main className="max-w-2xl mx-auto px-4 py-6 pb-24 sm:pb-6 flex flex-col gap-5">
+        {activeTab === 'calendar' && (
+          <CalendarView
+            myTodos={myTodos}
+            partnerTodos={partnerTodos}
+            onSelectDate={setSelectedDate}
+            selectedDate={selectedDate}
+          />
+        )}
         {activeTab === 'my' && (
           <>
             <ProgressDashboard todos={myTodos} ownerName={currentUser.displayName} />
