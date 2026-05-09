@@ -21,9 +21,7 @@ function getPartnerMessage(pct: number, name: string): string {
 
 function CategorySection({ todos, label }: { todos: Todo[]; label: string }) {
   const byCategory = calcCategoryProgress(todos)
-  const entries = (Object.entries(byCategory) as [CategoryKey, ReturnType<typeof calcCategoryProgress>[CategoryKey]][])
-    .filter(([, s]) => s.total > 0)
-  if (entries.length === 0) return null
+  const entries = Object.entries(byCategory) as [CategoryKey, ReturnType<typeof calcCategoryProgress>[CategoryKey]][]
   return (
     <div className="border-t border-gray-50 pt-4 flex flex-col gap-3">
       <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">{label}</span>
