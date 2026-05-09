@@ -5,11 +5,11 @@ import { CATEGORY_CONFIG } from '../lib/categoryConfig'
 
 type CategoryKey = keyof typeof CATEGORY_CONFIG
 
-function getMotivationalMessage(pct: number): string {
-  if (pct <= 30) return '오늘도 함께 시작해볼까요? 💪'
-  if (pct <= 60) return '잘 하고 있어요! 조금만 더 💕'
-  if (pct <= 90) return '거의 다 왔어요! 대단해요 🌟'
-  return '오늘 할 일을 모두 마쳤어요 🎊'
+function getMotivationalMessage(pct: number): { main: string; sub?: string } {
+  if (pct <= 30) return { main: '오늘도 함께 시작해볼까요? 💪' }
+  if (pct <= 60) return { main: '잘 하고 있어요! 조금만 더 💕' }
+  if (pct <= 90) return { main: '거의 다 왔어요! 대단해요 🌟' }
+  return { main: '오늘 할 일을 모두 마쳤어요 🎊', sub: '서로 수고했다고 말해줄까요?' }
 }
 
 function CategorySection({ todos, label }: { todos: Todo[]; label: string }) {
@@ -74,9 +74,12 @@ export default function ProgressDashboard({ todos, ownerName, partnerTodos, part
         <ProgressBar percentage={combined.percentage} label="" color="#f97316" size="lg" />
 
         {/* 감성 문구 */}
-        <p className="text-sm text-center text-gray-500">
-          {getMotivationalMessage(combined.percentage)}
-        </p>
+        <div className="text-center">
+          <p className="text-sm text-gray-500">{getMotivationalMessage(combined.percentage).main}</p>
+          {getMotivationalMessage(combined.percentage).sub && (
+            <p className="text-xs text-rose-400 mt-0.5">{getMotivationalMessage(combined.percentage).sub}</p>
+          )}
+        </div>
 
         {/* 개인별 미니 카드 */}
         <div className="grid grid-cols-2 gap-3">
@@ -120,9 +123,12 @@ export default function ProgressDashboard({ todos, ownerName, partnerTodos, part
           <span className="text-sm text-gray-400">{overall.completed}/{overall.total} 완료</span>
         </div>
         <ProgressBar percentage={overall.percentage} label="" color="#f97316" size="lg" />
-        <p className="text-xs text-gray-400 mt-2 text-center">
-          {getMotivationalMessage(overall.percentage)}
-        </p>
+        <div className="text-center mt-2">
+          <p className="text-xs text-gray-400">{getMotivationalMessage(overall.percentage).main}</p>
+          {getMotivationalMessage(overall.percentage).sub && (
+            <p className="text-xs text-rose-400 mt-0.5">{getMotivationalMessage(overall.percentage).sub}</p>
+          )}
+        </div>
       </div>
       <CategorySection todos={todos} label="카테고리별" />
     </div>

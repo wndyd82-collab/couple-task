@@ -1,13 +1,11 @@
 export default function Footer() {
   return (
-    <footer className="bg-white border-t border-orange-100 mt-auto">
-      <div className="max-w-2xl mx-auto px-4 py-6 flex flex-col items-center gap-2">
-        <div className="flex items-center gap-1.5">
-          <span className="text-lg" aria-hidden="true">❤️</span>
-          <span className="font-bold text-gray-700">CoupleTask</span>
-        </div>
-        <p className="text-xs text-gray-400">함께하는 할 일 관리 서비스</p>
-        <p className="text-xs text-gray-300">© 2026 CoupleTask. All rights reserved.</p>
+    <footer className="bg-gradient-to-r from-rose-50 via-pink-50 to-orange-50 border-t border-rose-100 mt-auto">
+      <div className="max-w-2xl mx-auto px-4 py-6 flex flex-col items-center gap-1.5">
+        <p className="text-sm font-medium text-rose-400">
+          💑 우리의 하루 — 함께라서 더 특별한 매일
+        </p>
+        <p className="text-xs text-gray-400">오늘도 서로에게 수고했다고 말해주세요 💕</p>
       </div>
     </footer>
   )

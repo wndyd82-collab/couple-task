@@ -70,7 +70,7 @@ export default function SharedTodoList({
     try {
       await updateTodo(editingTodo.id, { title, category, assignee, dueDate })
       setEditingTodo(null)
-      showToast('할일을 수정했습니다 ✏️')
+      showToast('할일을 수정했어요 ✏️')
     } catch {
       showToast('수정에 실패했습니다', 'error')
     }
@@ -90,8 +90,8 @@ export default function SharedTodoList({
           <div className="flex flex-col items-center justify-center py-14 gap-3 text-center">
             <span className="text-5xl" aria-hidden="true">💑</span>
             <div>
-              <p className="text-sm font-medium text-gray-500">아직 우리 할일이 없어요</p>
-              <p className="text-xs text-gray-400 mt-1">함께할 일을 추가해보세요 💑</p>
+              <p className="text-sm font-medium text-gray-500">아직 우리의 할일이 없어요 💑</p>
+              <p className="text-xs text-gray-400 mt-1">오늘 함께할 일을 추가해보세요</p>
             </div>
           </div>
         ) : (

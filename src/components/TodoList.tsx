@@ -91,7 +91,7 @@ export default function TodoList({
     try {
       await addTodo(userId, title, category, dueDate, assignee)
       setShowForm(false)
-      showToast('할일을 추가했습니다 ✅')
+      showToast('새로운 할일이 추가됐어요 ✨')
     } catch {
       showToast('할일 추가에 실패했습니다', 'error')
     }
@@ -167,7 +167,7 @@ export default function TodoList({
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
           </svg>
-          할일 추가
+          할일 추가하기
         </button>
       )}
 
@@ -186,19 +186,19 @@ export default function TodoList({
             // 할일 자체가 없는 경우
             <>
               <span className="text-5xl" aria-hidden="true">
-                {isReadOnly ? '🤗' : '✨'}
+                {isReadOnly ? '🤍' : '✨'}
               </span>
               <div>
                 <p className="text-sm font-medium text-gray-500">
                   {isReadOnly
-                    ? `${ownerName ?? '파트너'}님의 할일이 아직 없어요`
-                    : '아직 할일이 없어요'}
+                    ? `${ownerName ?? '파트너'}님의 할일이 아직 없어요 🤍`
+                    : '오늘 할 일을 추가해볼까요? ✨'}
                 </p>
-                {!isReadOnly && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    첫 번째 할일을 추가해보세요! 💪
-                  </p>
-                )}
+                <p className="text-xs text-gray-400 mt-1">
+                  {isReadOnly
+                    ? '조금 기다려봐요'
+                    : '작은 것부터 함께 시작해요'}
+                </p>
               </div>
             </>
           ) : (

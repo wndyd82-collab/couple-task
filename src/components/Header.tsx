@@ -8,26 +8,19 @@ export default function Header() {
       <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
         {/* 로고 */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-xl" aria-hidden="true">❤️</span>
-          <span className="font-bold text-gray-800">CoupleTask</span>
+          <span className="font-bold text-gray-800">💑 우리의 하루</span>
         </div>
 
         {/* 중앙 파트너 상태 (sm 이상) */}
         <div className="hidden sm:flex items-center gap-2 min-w-0">
           {partner ? (
-            <span className="flex items-center gap-1.5 text-xs text-gray-500 bg-orange-50
-              px-3 py-1.5 rounded-full border border-orange-100 truncate max-w-[240px]">
-              <span aria-hidden="true">💑</span>
-              <span>
-                <span className="text-orange-600 font-medium">{currentUser?.displayName}</span>
-                {' '}·{' '}
-                <span className="text-orange-600 font-medium">{partner.displayName}</span>
-                <span className="text-gray-400 ml-1">연결됨</span>
-              </span>
+            <span className="flex items-center gap-1.5 text-xs text-gray-500 bg-rose-50
+              px-3 py-1.5 rounded-full border border-rose-100 truncate max-w-[260px]">
+              <span className="text-rose-500 font-medium">{partner.displayName}과 함께하는 중 💕</span>
             </span>
           ) : currentUser && (
             <span className="text-xs text-gray-400">
-              안녕하세요, <span className="text-gray-600 font-medium">{currentUser.displayName}</span>님
+              파트너를 초대해보세요 💌
             </span>
           )}
         </div>

@@ -97,7 +97,7 @@ export default function TodoItem({ todo, isReadOnly, onEdit, standalone = true, 
     setThanking(true)
     try {
       await sendThankYou(todo.id, currentUser.uid)
-      showToast('💛 고마움을 전달했어요!')
+      showToast('감사한 마음을 전달했어요 💛')
     } catch {
       showToast('전송에 실패했습니다', 'error')
     } finally {
@@ -110,7 +110,7 @@ export default function TodoItem({ todo, isReadOnly, onEdit, standalone = true, 
     setToggling(true)
     try {
       await toggleComplete(todo.id, todo.isCompleted)
-      showToast(todo.isCompleted ? '미완료로 변경했습니다' : '완료! 🎉')
+      showToast(todo.isCompleted ? '미완료로 되돌렸어요' : '완료! 수고했어요 💪')
     } catch {
       showToast('변경에 실패했습니다', 'error')
     } finally {
@@ -123,7 +123,7 @@ export default function TodoItem({ todo, isReadOnly, onEdit, standalone = true, 
     setDeleting(true)
     try {
       await deleteTodo(todo.id)
-      showToast('할일을 삭제했습니다 🗑️')
+      showToast('할일을 삭제했어요')
     } catch {
       showToast('삭제에 실패했습니다', 'error')
     } finally {
