@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { sendPasswordResetEmail } from 'firebase/auth'
+import { auth } from '../lib/firebase'
 import { useAuthStore } from '../store/authStore'
 import Input from '../components/Input'
 import Button from '../components/Button'
@@ -30,9 +32,17 @@ export default function AuthPage() {
   const [partnerCode, setPartnerCode] = useState('')
   const [localError, setLocalError] = useState('')
 
+  // 비밀번호 찾기
+  const [showReset, setShowReset] = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+  const [resetSent, setResetSent] = useState(false)
+  const [resetLoading, setResetLoading] = useState(false)
+  const [resetError, setResetError] = useState('')
+
   const switchTab = (next: Tab) => {
     setTab(next)
     setLocalError('')
+    setShowReset(false)
     clearError()
   }
 
@@ -74,6 +84,20 @@ export default function AuthPage() {
     }
   }
 
+  const handleResetPassword = async (e: FormEvent) => {
+    e.preventDefault()
+    setResetError('')
+    setResetLoading(true)
+    try {
+      await sendPasswordResetEmail(auth, resetEmail)
+      setResetSent(true)
+    } catch (err: unknown) {
+      if (err instanceof Error) setResetError(getFirebaseErrorMessage(err.message))
+    } finally {
+      setResetLoading(false)
+    }
+  }
+
   const displayError = localError || (error ? getFirebaseErrorMessage(error) : '')
 
   return (
@@ -88,118 +112,174 @@ export default function AuthPage() {
 
         {/* 카드 */}
         <div className="bg-white rounded-2xl shadow-lg shadow-orange-100 p-8">
-          {/* 탭 */}
-          <div className="flex rounded-xl bg-orange-50 p-1 mb-6">
-            {(['signin', 'signup'] as Tab[]).map((t) => (
+
+          {/* 비밀번호 찾기 화면 */}
+          {showReset ? (
+            <div className="flex flex-col gap-4">
               <button
-                key={t}
-                onClick={() => switchTab(t)}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                  tab === t
-                    ? 'bg-white text-orange-600 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
+                onClick={() => { setShowReset(false); setResetSent(false); setResetError('') }}
+                className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-600 transition-colors w-fit"
               >
-                {t === 'signin' ? '로그인' : '회원가입'}
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+                로그인으로 돌아가기
               </button>
-            ))}
-          </div>
 
-          {/* 로그인 폼 */}
-          {tab === 'signin' && (
-            <form onSubmit={handleSignIn} className="flex flex-col gap-4">
-              <Input
-                label="이메일"
-                id="signin-email"
-                type="email"
-                placeholder="example@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
-              <Input
-                label="비밀번호"
-                id="signin-password"
-                type="password"
-                placeholder="비밀번호를 입력하세요"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
-              {displayError && (
-                <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{displayError}</p>
-              )}
-              <Button type="submit" isLoading={isLoading} className="mt-2">
-                로그인
-              </Button>
-            </form>
-          )}
-
-          {/* 회원가입 폼 */}
-          {tab === 'signup' && (
-            <form onSubmit={handleSignUp} className="flex flex-col gap-4">
-              <Input
-                label="표시 이름"
-                id="signup-name"
-                type="text"
-                placeholder="상대방에게 보일 이름"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                required
-                autoComplete="nickname"
-              />
-              <Input
-                label="이메일"
-                id="signup-email"
-                type="email"
-                placeholder="example@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
-              <Input
-                label="비밀번호"
-                id="signup-password"
-                type="password"
-                placeholder="6자 이상"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="new-password"
-              />
-              <Input
-                label="비밀번호 확인"
-                id="signup-password-confirm"
-                type="password"
-                placeholder="비밀번호를 다시 입력하세요"
-                value={passwordConfirm}
-                onChange={(e) => setPasswordConfirm(e.target.value)}
-                required
-                autoComplete="new-password"
-                error={passwordConfirm && password !== passwordConfirm ? '비밀번호가 일치하지 않습니다.' : ''}
-              />
-              <div className="border-t border-gray-100 pt-4">
-                <Input
-                  label="파트너 초대 코드 (선택)"
-                  id="signup-partner-code"
-                  type="text"
-                  placeholder="파트너에게 받은 6자리 코드"
-                  value={partnerCode}
-                  onChange={(e) => setPartnerCode(e.target.value.toUpperCase())}
-                  autoComplete="off"
-                />
-                <p className="text-xs text-gray-400 mt-1">코드가 없으면 가입 후 연결할 수 있어요</p>
+              <div>
+                <h2 className="text-base font-semibold text-gray-800">비밀번호 찾기</h2>
+                <p className="text-sm text-gray-400 mt-1">가입한 이메일로 재설정 링크를 보내드려요</p>
               </div>
-              {displayError && (
-                <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{displayError}</p>
+
+              {resetSent ? (
+                <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-4 text-center">
+                  <p className="text-sm font-medium text-green-700">이메일을 전송했습니다 ✅</p>
+                  <p className="text-xs text-green-500 mt-1">{resetEmail} 을 확인해주세요</p>
+                </div>
+              ) : (
+                <form onSubmit={handleResetPassword} className="flex flex-col gap-4">
+                  <Input
+                    label="이메일"
+                    id="reset-email"
+                    type="email"
+                    placeholder="가입한 이메일 주소"
+                    value={resetEmail}
+                    onChange={(e) => setResetEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                  />
+                  {resetError && (
+                    <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{resetError}</p>
+                  )}
+                  <Button type="submit" isLoading={resetLoading}>
+                    재설정 링크 보내기
+                  </Button>
+                </form>
               )}
-              <Button type="submit" isLoading={isLoading} className="mt-2">
-                회원가입
-              </Button>
-            </form>
+            </div>
+          ) : (
+            <>
+              {/* 탭 */}
+              <div className="flex rounded-xl bg-orange-50 p-1 mb-6">
+                {(['signin', 'signup'] as Tab[]).map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => switchTab(t)}
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                      tab === t
+                        ? 'bg-white text-orange-600 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    {t === 'signin' ? '로그인' : '회원가입'}
+                  </button>
+                ))}
+              </div>
+
+              {/* 로그인 폼 */}
+              {tab === 'signin' && (
+                <form onSubmit={handleSignIn} className="flex flex-col gap-4">
+                  <Input
+                    label="이메일"
+                    id="signin-email"
+                    type="email"
+                    placeholder="example@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                  />
+                  <Input
+                    label="비밀번호"
+                    id="signin-password"
+                    type="password"
+                    placeholder="비밀번호를 입력하세요"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                  />
+                  {displayError && (
+                    <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{displayError}</p>
+                  )}
+                  <Button type="submit" isLoading={isLoading} className="mt-2">
+                    로그인
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowReset(true); setResetEmail(email) }}
+                    className="text-xs text-gray-400 hover:text-orange-500 transition-colors text-center mt-1"
+                  >
+                    비밀번호를 잊으셨나요?
+                  </button>
+                </form>
+              )}
+
+              {/* 회원가입 폼 */}
+              {tab === 'signup' && (
+                <form onSubmit={handleSignUp} className="flex flex-col gap-4">
+                  <Input
+                    label="표시 이름"
+                    id="signup-name"
+                    type="text"
+                    placeholder="상대방에게 보일 이름"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    required
+                    autoComplete="nickname"
+                  />
+                  <Input
+                    label="이메일"
+                    id="signup-email"
+                    type="email"
+                    placeholder="example@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                  />
+                  <Input
+                    label="비밀번호"
+                    id="signup-password"
+                    type="password"
+                    placeholder="6자 이상"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="new-password"
+                  />
+                  <Input
+                    label="비밀번호 확인"
+                    id="signup-password-confirm"
+                    type="password"
+                    placeholder="비밀번호를 다시 입력하세요"
+                    value={passwordConfirm}
+                    onChange={(e) => setPasswordConfirm(e.target.value)}
+                    required
+                    autoComplete="new-password"
+                    error={passwordConfirm && password !== passwordConfirm ? '비밀번호가 일치하지 않습니다.' : ''}
+                  />
+                  <div className="border-t border-gray-100 pt-4">
+                    <Input
+                      label="파트너 초대 코드 (선택)"
+                      id="signup-partner-code"
+                      type="text"
+                      placeholder="파트너에게 받은 6자리 코드"
+                      value={partnerCode}
+                      onChange={(e) => setPartnerCode(e.target.value.toUpperCase())}
+                      autoComplete="off"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">코드가 없으면 가입 후 연결할 수 있어요</p>
+                  </div>
+                  {displayError && (
+                    <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{displayError}</p>
+                  )}
+                  <Button type="submit" isLoading={isLoading} className="mt-2">
+                    회원가입
+                  </Button>
+                </form>
+              )}
+            </>
           )}
         </div>
       </div>
