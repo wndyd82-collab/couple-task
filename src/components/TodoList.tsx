@@ -245,6 +245,7 @@ export default function TodoList({
                     todo={todo}
                     isReadOnly={isReadOnly}
                     onEdit={handleStartEdit}
+                    partnerName={isReadOnly ? ownerName : undefined}
                   />
                 )
               )}

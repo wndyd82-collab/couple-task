@@ -92,7 +92,7 @@ export default function DayDetailPanel({ date, myTodos, partnerTodos, userId, pa
               <p className="text-xs font-medium text-rose-400 mb-2">{partnerName ?? '파트너'} 할일</p>
               <div className="flex flex-col gap-2">
                 {dayPartnerTodos.map((todo) => (
-                  <TodoItemWithComments key={todo.id} todo={todo} isReadOnly={true} onEdit={() => {}} />
+                  <TodoItemWithComments key={todo.id} todo={todo} isReadOnly={true} onEdit={() => {}} partnerName={partnerName} />
                 ))}
               </div>
             </div>

@@ -163,6 +163,7 @@ export default function SharedTodoList({
                   todo={todo}
                   isReadOnly={!isOwn}
                   onEdit={isOwn ? (t) => setEditingTodo(t) : () => {}}
+                  partnerName={partnerName}
                 />
               </div>
             )

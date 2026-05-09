@@ -1,17 +1,87 @@
 import { useState } from 'react'
-import type { Todo } from '../types'
+import type { Todo, Assignee } from '../types'
 import { useTodoStore } from '../store/todoStore'
 import { useToastStore } from '../store/toastStore'
 import { CATEGORY_CONFIG } from '../lib/categoryConfig'
+import { dDay, formatDueDate, getDDayLabel } from '../lib/dateUtils'
+
+// 담당자 아바타 배지
+function AssigneeBadge({ assignee, partnerName }: { assignee?: Assignee | null; partnerName?: string }) {
+  if (!assignee) return null
+  const initial = partnerName ? partnerName[0].toUpperCase() : '상'
+
+  if (assignee === 'me') {
+    return (
+      <span
+        className="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full
+          bg-blue-100 text-blue-600 text-[10px] font-bold"
+        title="나"
+      >
+        나
+      </span>
+    )
+  }
+
+  if (assignee === 'partner') {
+    return (
+      <span
+        className="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full
+          bg-rose-100 text-rose-600 text-[10px] font-bold"
+        title={partnerName ?? '상대방'}
+      >
+        {initial}
+      </span>
+    )
+  }
+
+  // 'both' — 파란 원 + 분홍 원 겹치기
+  return (
+    <span className="flex-shrink-0 relative inline-block w-9 h-6" title="함께">
+      <span className="absolute left-0 top-0 inline-flex items-center justify-center w-6 h-6 rounded-full
+        bg-blue-100 text-blue-600 text-[9px] font-bold border-2 border-white z-10">
+        나
+      </span>
+      <span className="absolute left-3 top-0 inline-flex items-center justify-center w-6 h-6 rounded-full
+        bg-rose-100 text-rose-600 text-[9px] font-bold border-2 border-white">
+        {initial}
+      </span>
+    </span>
+  )
+}
+
+// 마감일 + D-Day 배지
+function DueDateBadge({ dueDate }: { dueDate?: string | null }) {
+  if (!dueDate) return null
+
+  const diff = dDay(dueDate)
+  const isPast = diff < 0
+
+  const colorClass =
+    isPast        ? 'text-red-500' :
+    diff === 0    ? 'text-red-600 font-semibold' :
+    diff <= 3     ? 'text-red-500' :
+    diff <= 7     ? 'text-orange-500' :
+                    'text-gray-400'
+
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-xs ${colorClass}`}>
+      <span aria-hidden="true">📅</span>
+      <span>{formatDueDate(dueDate)}</span>
+      <span aria-hidden="true">·</span>
+      <span className={isPast ? 'line-through' : ''}>{getDDayLabel(dueDate)}</span>
+    </span>
+  )
+}
 
 interface TodoItemProps {
   todo: Todo
   isReadOnly: boolean
   onEdit: (todo: Todo) => void
   standalone?: boolean
+  partnerName?: string
 }
 
-export default function TodoItem({ todo, isReadOnly, onEdit, standalone = true }: TodoItemProps) {
+export default function TodoItem({ todo, isReadOnly, onEdit, standalone = true, partnerName }: TodoItemProps) {
   const { toggleComplete, deleteTodo } = useTodoStore()
   const { showToast } = useToastStore()
   const [deleting, setDeleting] = useState(false)
@@ -43,7 +113,6 @@ export default function TodoItem({ todo, isReadOnly, onEdit, standalone = true }
     }
   }
 
-  // group 클래스를 내부 div에 배치 → standalone 여부와 무관하게 group-hover 동작
   const inner = (
     <div className={`group flex items-start gap-3 p-4 ${todo.isCompleted && !standalone ? 'opacity-60' : ''}`}>
       {/* 체크박스 */}
@@ -70,18 +139,27 @@ export default function TodoItem({ todo, isReadOnly, onEdit, standalone = true }
 
       {/* 내용 */}
       <div className="flex-1 min-w-0">
-        <p className={`text-sm leading-relaxed break-words
-          ${todo.isCompleted ? 'line-through text-gray-400' : 'text-gray-700'}`}
-        >
-          {todo.title}
-        </p>
-        <span
-          className={`inline-block mt-1.5 text-xs font-medium px-2 py-0.5 rounded-full border
-            ${(CATEGORY_CONFIG[todo.category] ?? CATEGORY_CONFIG['기타']).chipStyle}`}
-          aria-label={`카테고리: ${todo.category}`}
-        >
-          {todo.category}
-        </span>
+        {/* 제목 행: 텍스트 + 담당자 아바타 */}
+        <div className="flex items-start gap-2">
+          <p className={`flex-1 text-sm leading-relaxed break-words
+            ${todo.isCompleted ? 'line-through text-gray-400' : 'text-gray-700'}`}
+          >
+            {todo.title}
+          </p>
+          <AssigneeBadge assignee={todo.assignee} partnerName={partnerName} />
+        </div>
+
+        {/* 하단 행: 카테고리 + 마감일·D-Day */}
+        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+          <span
+            className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full border
+              ${(CATEGORY_CONFIG[todo.category] ?? CATEGORY_CONFIG['기타']).chipStyle}`}
+            aria-label={`카테고리: ${todo.category}`}
+          >
+            {todo.category}
+          </span>
+          <DueDateBadge dueDate={todo.dueDate} />
+        </div>
       </div>
 
       {/* 액션 버튼 — 내 할일만 노출 */}

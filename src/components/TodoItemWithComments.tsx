@@ -7,9 +7,10 @@ interface TodoItemWithCommentsProps {
   todo: Todo
   isReadOnly: boolean
   onEdit: (todo: Todo) => void
+  partnerName?: string
 }
 
-export default function TodoItemWithComments({ todo, isReadOnly, onEdit }: TodoItemWithCommentsProps) {
+export default function TodoItemWithComments({ todo, isReadOnly, onEdit, partnerName }: TodoItemWithCommentsProps) {
   const [commentOpen, setCommentOpen] = useState(false)
 
   return (
@@ -24,6 +25,7 @@ export default function TodoItemWithComments({ todo, isReadOnly, onEdit }: TodoI
         isReadOnly={isReadOnly}
         onEdit={onEdit}
         standalone={false}
+        partnerName={partnerName}
       />
       <CommentSection
         todoId={todo.id}
