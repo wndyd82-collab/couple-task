@@ -1,17 +1,33 @@
 import { useState, type FormEvent, useEffect } from 'react'
-import type { Todo } from '../types'
+import type { Todo, Assignee } from '../types'
 import Button from './Button'
 import { CATEGORIES, CATEGORY_CONFIG } from '../lib/categoryConfig'
 
+const ASSIGNEE_OPTIONS: { value: Assignee; label: string }[] = [
+  { value: 'me', label: '나' },
+  { value: 'partner', label: '상대방' },
+  { value: 'both', label: '함께' },
+]
+
+interface InitialData {
+  title: string
+  category: Todo['category']
+  assignee?: Assignee | null
+  dueDate?: string | null
+}
+
 interface TodoFormProps {
-  initialData?: Pick<Todo, 'title' | 'category'>
-  onSubmit: (title: string, category: Todo['category']) => Promise<void>
+  initialData?: InitialData
+  initialDueDate?: string
+  onSubmit: (title: string, category: Todo['category'], assignee: Assignee | null, dueDate: string | null) => Promise<void>
   onCancel: () => void
 }
 
-export default function TodoForm({ initialData, onSubmit, onCancel }: TodoFormProps) {
+export default function TodoForm({ initialData, initialDueDate, onSubmit, onCancel }: TodoFormProps) {
   const [title, setTitle] = useState(initialData?.title ?? '')
   const [category, setCategory] = useState<Todo['category'] | ''>(initialData?.category ?? '')
+  const [assignee, setAssignee] = useState<Assignee | null>(initialData?.assignee ?? null)
+  const [dueDate, setDueDate] = useState<string>(initialData?.dueDate ?? initialDueDate ?? '')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -22,6 +38,8 @@ export default function TodoForm({ initialData, onSubmit, onCancel }: TodoFormPr
     if (initialData) {
       setTitle(initialData.title)
       setCategory(initialData.category)
+      setAssignee(initialData.assignee ?? null)
+      setDueDate(initialData.dueDate ?? '')
     }
   }, [initialData])
 
@@ -40,7 +58,7 @@ export default function TodoForm({ initialData, onSubmit, onCancel }: TodoFormPr
 
     setIsSubmitting(true)
     try {
-      await onSubmit(title.trim(), category)
+      await onSubmit(title.trim(), category, assignee, dueDate || null)
     } catch {
       setError('저장에 실패했습니다. 다시 시도해주세요.')
     } finally {
@@ -92,6 +110,46 @@ export default function TodoForm({ initialData, onSubmit, onCancel }: TodoFormPr
             )
           })}
         </div>
+      </div>
+
+      {/* 담당자 선택 */}
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium text-gray-700">
+          담당자
+          <span className="ml-1 text-xs font-normal text-gray-400">(선택)</span>
+        </label>
+        <div className="flex gap-2">
+          {ASSIGNEE_OPTIONS.map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setAssignee(assignee === value ? null : value)}
+              className={`flex-1 min-h-[40px] rounded-xl border text-sm font-medium transition-all
+                ${assignee === value
+                  ? 'bg-orange-500 text-white border-orange-500'
+                  : 'border-gray-200 text-gray-500 hover:border-orange-200 bg-white'
+                }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 마감일 선택 */}
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium text-gray-700">
+          마감일
+          <span className="ml-1 text-xs font-normal text-gray-400">(선택)</span>
+        </label>
+        <input
+          type="date"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm
+            outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all
+            text-gray-700"
+        />
       </div>
 
       {error && (

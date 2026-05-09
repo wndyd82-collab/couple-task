@@ -7,13 +7,16 @@ export interface User {
   inviteCode: string
 }
 
+export type Assignee = 'me' | 'partner' | 'both'
+
 export interface Todo {
   id: string
   userId: string
   title: string
   category: '살림' | '데이트' | '건강' | '약속' | '기타'
+  assignee?: Assignee | null
   isCompleted: boolean
-  dueDate?: string
+  dueDate?: string | null
   createdAt: Timestamp
   updatedAt: Timestamp
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Todo } from '../types'
+import type { Todo, Assignee } from '../types'
 import { useTodoStore } from '../store/todoStore'
 import { useToastStore } from '../store/toastStore'
 import TodoItemWithComments from './TodoItemWithComments'
@@ -27,9 +27,9 @@ export default function DayDetailPanel({ date, myTodos, partnerTodos, userId, pa
   const dayMyTodos = myTodos.filter((t) => t.dueDate === date)
   const dayPartnerTodos = partnerTodos.filter((t) => t.dueDate === date)
 
-  const handleAdd = async (title: string, category: Todo['category']) => {
+  const handleAdd = async (title: string, category: Todo['category'], assignee: Assignee | null, dueDate: string | null) => {
     try {
-      await addTodo(userId, title, category, date)
+      await addTodo(userId, title, category, dueDate ?? date, assignee)
       setShowForm(false)
       showToast('할일을 추가했습니다 ✅')
     } catch {
@@ -69,7 +69,7 @@ export default function DayDetailPanel({ date, myTodos, partnerTodos, userId, pa
         <div className="overflow-y-auto flex-1 px-5 py-4 flex flex-col gap-4">
           {/* 추가 폼 */}
           {showForm && (
-            <TodoForm onSubmit={handleAdd} onCancel={() => setShowForm(false)} />
+            <TodoForm initialDueDate={date} onSubmit={handleAdd} onCancel={() => setShowForm(false)} />
           )}
 
           {/* 내 할일 */}

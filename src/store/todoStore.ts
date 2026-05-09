@@ -13,7 +13,7 @@ import {
   type Unsubscribe,
 } from 'firebase/firestore'
 import { db } from '../lib/firebase'
-import type { Todo } from '../types'
+import type { Todo, Assignee } from '../types'
 
 type Category = '전체' | '살림' | '데이트' | '건강' | '약속' | '기타'
 
@@ -25,8 +25,8 @@ interface TodoState {
 
   subscribeMyTodos: (userId: string) => Unsubscribe
   subscribePartnerTodos: (partnerId: string) => Unsubscribe
-  addTodo: (userId: string, title: string, category: Todo['category'], dueDate?: string) => Promise<void>
-  updateTodo: (id: string, data: Partial<Pick<Todo, 'title' | 'category'>>) => Promise<void>
+  addTodo: (userId: string, title: string, category: Todo['category'], dueDate?: string | null, assignee?: Assignee | null) => Promise<void>
+  updateTodo: (id: string, data: Partial<Pick<Todo, 'title' | 'category' | 'assignee' | 'dueDate'>>) => Promise<void>
   toggleComplete: (id: string, currentStatus: boolean) => Promise<void>
   deleteTodo: (id: string) => Promise<void>
   setFilter: (category: Category) => void
@@ -67,13 +67,14 @@ export const useTodoStore = create<TodoState>((set) => ({
     return unsubscribe
   },
 
-  addTodo: async (userId, title, category, dueDate) => {
+  addTodo: async (userId, title, category, dueDate, assignee) => {
     await addDoc(collection(db, 'todos'), {
       userId,
       title: title.trim(),
       category,
       isCompleted: false,
       ...(dueDate ? { dueDate } : {}),
+      ...(assignee != null ? { assignee } : {}),
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     })

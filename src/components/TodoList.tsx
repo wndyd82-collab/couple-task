@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Todo } from '../types'
+import type { Todo, Assignee } from '../types'
 import { useTodoStore } from '../store/todoStore'
 import { useToastStore } from '../store/toastStore'
 import TodoItemWithComments from './TodoItemWithComments'
@@ -87,9 +87,9 @@ export default function TodoList({
     ? todos
     : todos.filter((t) => t.category === activeFilter)
 
-  const handleAdd = async (title: string, category: Todo['category']) => {
+  const handleAdd = async (title: string, category: Todo['category'], assignee: Assignee | null, dueDate: string | null) => {
     try {
-      await addTodo(userId, title, category)
+      await addTodo(userId, title, category, dueDate, assignee)
       setShowForm(false)
       showToast('할일을 추가했습니다 ✅')
     } catch {
@@ -97,10 +97,10 @@ export default function TodoList({
     }
   }
 
-  const handleEdit = async (title: string, category: Todo['category']) => {
+  const handleEdit = async (title: string, category: Todo['category'], assignee: Assignee | null, dueDate: string | null) => {
     if (!editingTodo) return
     try {
-      await updateTodo(editingTodo.id, { title, category })
+      await updateTodo(editingTodo.id, { title, category, assignee, dueDate })
       setEditingTodo(null)
       showToast('할일을 수정했습니다 ✏️')
     } catch {
@@ -235,7 +235,7 @@ export default function TodoList({
                 editingTodo?.id === todo.id ? (
                   <TodoForm
                     key={todo.id}
-                    initialData={{ title: todo.title, category: todo.category }}
+                    initialData={{ title: todo.title, category: todo.category, assignee: todo.assignee, dueDate: todo.dueDate }}
                     onSubmit={handleEdit}
                     onCancel={() => setEditingTodo(null)}
                   />
