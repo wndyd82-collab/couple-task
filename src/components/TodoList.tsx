@@ -6,6 +6,48 @@ import TodoItemWithComments from './TodoItemWithComments'
 import TodoForm from './TodoForm'
 import SkeletonTodo from './SkeletonTodo'
 
+const WEEKDAY = ['일', '월', '화', '수', '목', '금', '토']
+
+function formatDateLabel(dateStr: string): string {
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+  const tomorrow = new Date(today)
+  tomorrow.setDate(today.getDate() + 1)
+  const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`
+  const yesterday = new Date(today)
+  yesterday.setDate(today.getDate() - 1)
+  const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`
+
+  if (dateStr === todayStr) return '오늘'
+  if (dateStr === tomorrowStr) return '내일'
+  if (dateStr === yesterdayStr) return '어제'
+
+  const d = new Date(dateStr)
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEKDAY[d.getDay()]})`
+}
+
+function groupByDate(todos: Todo[]): { label: string; dateStr: string; items: Todo[] }[] {
+  const withDate = todos.filter((t) => t.dueDate)
+  const noDate = todos.filter((t) => !t.dueDate)
+
+  const map = new Map<string, Todo[]>()
+  for (const todo of withDate) {
+    const key = todo.dueDate!
+    if (!map.has(key)) map.set(key, [])
+    map.get(key)!.push(todo)
+  }
+
+  const sorted = Array.from(map.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([dateStr, items]) => ({ label: formatDateLabel(dateStr), dateStr, items }))
+
+  if (noDate.length > 0) {
+    sorted.push({ label: '날짜 미정', dateStr: '', items: noDate })
+  }
+
+  return sorted
+}
+
 type FilterCategory = '전체' | '업무' | '개인' | '공부'
 
 const FILTERS: FilterCategory[] = ['전체', '업무', '개인', '공부']
@@ -171,25 +213,44 @@ export default function TodoList({
           )}
         </div>
       ) : (
-        /* 할일 목록 */
-        <div className="flex flex-col gap-2" role="tabpanel">
-          {filtered.map((todo) =>
-            editingTodo?.id === todo.id ? (
-              <TodoForm
-                key={todo.id}
-                initialData={{ title: todo.title, category: todo.category }}
-                onSubmit={handleEdit}
-                onCancel={() => setEditingTodo(null)}
-              />
-            ) : (
-              <TodoItemWithComments
-                key={todo.id}
-                todo={todo}
-                isReadOnly={isReadOnly}
-                onEdit={handleStartEdit}
-              />
-            )
-          )}
+        /* 날짜별 그룹 목록 */
+        <div className="flex flex-col gap-4" role="tabpanel">
+          {groupByDate(filtered).map(({ label, dateStr, items }) => (
+            <div key={dateStr || 'no-date'} className="flex flex-col gap-2">
+              {/* 날짜 헤더 */}
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full
+                  ${label === '오늘' ? 'bg-orange-500 text-white' :
+                    label === '내일' ? 'bg-orange-100 text-orange-600' :
+                    label === '날짜 미정' ? 'bg-gray-100 text-gray-400' :
+                    dateStr < new Date().toISOString().slice(0, 10) ? 'bg-gray-100 text-gray-400' :
+                    'bg-blue-50 text-blue-500'}`}
+                >
+                  {label}
+                </span>
+                <span className="text-xs text-gray-300">{items.length}개</span>
+                <div className="flex-1 h-px bg-gray-100" />
+              </div>
+              {/* 할일 목록 */}
+              {items.map((todo) =>
+                editingTodo?.id === todo.id ? (
+                  <TodoForm
+                    key={todo.id}
+                    initialData={{ title: todo.title, category: todo.category }}
+                    onSubmit={handleEdit}
+                    onCancel={() => setEditingTodo(null)}
+                  />
+                ) : (
+                  <TodoItemWithComments
+                    key={todo.id}
+                    todo={todo}
+                    isReadOnly={isReadOnly}
+                    onEdit={handleStartEdit}
+                  />
+                )
+              )}
+            </div>
+          ))}
         </div>
       )}
 
