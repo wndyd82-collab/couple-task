@@ -40,22 +40,24 @@ export default function ProgressDashboard({ todos, ownerName }: ProgressDashboar
       </div>
 
       {/* 카테고리별 */}
-      <div className="border-t border-gray-50 pt-4 flex flex-col gap-3">
-        <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">카테고리별</span>
-        {(Object.entries(byCategory) as [keyof typeof CATEGORY_CONFIG, (typeof byCategory)[keyof typeof byCategory]][]).map(
-          ([cat, stat]) => (
-            <ProgressBar
-              key={cat}
-              percentage={stat.percentage}
-              label={cat}
-              color={CATEGORY_CONFIG[cat].hexColor}
-              completed={stat.completed}
-              total={stat.total}
-              size="sm"
-            />
-          )
-        )}
-      </div>
+      {(Object.entries(byCategory) as [keyof typeof CATEGORY_CONFIG, (typeof byCategory)[keyof typeof byCategory]][]).filter(([, stat]) => stat.total > 0).length > 0 && (
+        <div className="border-t border-gray-50 pt-4 flex flex-col gap-3">
+          <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">카테고리별</span>
+          {(Object.entries(byCategory) as [keyof typeof CATEGORY_CONFIG, (typeof byCategory)[keyof typeof byCategory]][])
+            .filter(([, stat]) => stat.total > 0)
+            .map(([cat, stat]) => (
+              <ProgressBar
+                key={cat}
+                percentage={stat.percentage}
+                label={cat}
+                color={CATEGORY_CONFIG[cat].hexColor}
+                completed={stat.completed}
+                total={stat.total}
+                size="sm"
+              />
+            ))}
+        </div>
+      )}
     </div>
   )
 }

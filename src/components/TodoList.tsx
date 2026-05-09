@@ -126,7 +126,7 @@ export default function TodoList({
       <div
         role="tablist"
         aria-label="카테고리 필터"
-        className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide"
+        className="grid grid-cols-3 gap-1.5"
       >
         {FILTERS.map((f) => (
           <button
@@ -134,7 +134,7 @@ export default function TodoList({
             role="tab"
             aria-selected={activeFilter === f}
             onClick={() => setFilter(f)}
-            className={`min-h-[36px] px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap
+            className={`min-h-[36px] px-2 py-1.5 rounded-xl text-sm font-medium
               transition-all border focus:outline-none focus:ring-2 focus:ring-orange-300
               ${activeFilter === f
                 ? FILTER_ACTIVE[f]
@@ -142,7 +142,7 @@ export default function TodoList({
               }`}
           >
             {f}
-            <span className="ml-1.5 text-xs opacity-70">
+            <span className="ml-1 text-xs opacity-70">
               {f === '전체' ? todos.length : todos.filter((t) => t.category === f).length}
             </span>
           </button>
