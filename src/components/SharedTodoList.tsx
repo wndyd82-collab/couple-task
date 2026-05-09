@@ -53,6 +53,7 @@ interface SharedTodoListProps {
 export default function SharedTodoList({
   myTodos,
   partnerTodos,
+  myUserId,
   partnerName,
   isLoading = false,
 }: SharedTodoListProps) {
@@ -188,7 +189,8 @@ export default function SharedTodoList({
         <button
           onClick={() => setShowForm(true)}
           aria-label="할일 추가"
-          className="fixed bottom-6 right-4 sm:hidden z-30
+          style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
+          className="fixed right-4 sm:hidden z-50
             w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-600 active:scale-95
             text-white shadow-2xl flex items-center justify-center transition-all"
         >
