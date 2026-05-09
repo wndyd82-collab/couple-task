@@ -13,6 +13,7 @@ const CATEGORY_COLOR: Record<Todo['category'], string> = {
 interface CalendarViewProps {
   myTodos: Todo[]
   partnerTodos: Todo[]
+  partnerName?: string
   onSelectDate: (date: string) => void
   selectedDate: string | null
 }
@@ -23,7 +24,7 @@ function toDateStr(year: number, month: number, day: number): string {
 
 const MAX_VISIBLE = 2
 
-export default function CalendarView({ myTodos, partnerTodos, onSelectDate, selectedDate }: CalendarViewProps) {
+export default function CalendarView({ myTodos, partnerTodos, partnerName, onSelectDate, selectedDate }: CalendarViewProps) {
   const today = new Date()
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth())
@@ -163,7 +164,7 @@ export default function CalendarView({ myTodos, partnerTodos, onSelectDate, sele
           <span className="w-2.5 h-2.5 rounded-sm bg-purple-100 border border-purple-200" />공부
         </div>
         <div className="flex items-center gap-1 text-[11px] text-gray-400">
-          <span className="w-2.5 h-2.5 rounded-sm bg-rose-100 border border-rose-200" />파트너
+          <span className="w-2.5 h-2.5 rounded-sm bg-rose-100 border border-rose-200" />{partnerName ?? '파트너'}
         </div>
       </div>
     </div>

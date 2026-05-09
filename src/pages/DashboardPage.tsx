@@ -8,6 +8,7 @@ import Header from '../components/Header'
 import InvitePanel from '../components/InvitePanel'
 import CalendarView from '../components/CalendarView'
 import DayDetailPanel from '../components/DayDetailPanel'
+import Footer from '../components/Footer'
 
 type Tab = 'calendar' | 'my' | 'partner' | 'invite'
 
@@ -65,7 +66,7 @@ export default function DashboardPage() {
   if (!currentUser) return null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex flex-col">
       <Header />
 
       {/* 탭 */}
@@ -142,6 +143,7 @@ export default function DashboardPage() {
           myTodos={myTodos}
           partnerTodos={partnerTodos}
           userId={currentUser.uid}
+          partnerName={partner?.displayName}
           onClose={() => setSelectedDate(null)}
         />
       )}
@@ -151,6 +153,7 @@ export default function DashboardPage() {
           <CalendarView
             myTodos={myTodos}
             partnerTodos={partnerTodos}
+            partnerName={partner?.displayName}
             onSelectDate={setSelectedDate}
             selectedDate={selectedDate}
           />
@@ -182,6 +185,7 @@ export default function DashboardPage() {
           <InvitePanel />
         )}
       </main>
+      <Footer />
     </div>
   )
 }
