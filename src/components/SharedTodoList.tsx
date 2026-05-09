@@ -6,6 +6,12 @@ import TodoItemWithComments from './TodoItemWithComments'
 import TodoForm from './TodoForm'
 import SkeletonTodo from './SkeletonTodo'
 
+const PlusIcon = () => (
+  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+  </svg>
+)
+
 const ASSIGNEE_LABELS: Record<Assignee, string> = {
   me: '나',
   partner: '상대방',
@@ -50,15 +56,31 @@ export default function SharedTodoList({
   partnerName,
   isLoading = false,
 }: SharedTodoListProps) {
-  const { updateTodo } = useTodoStore()
+  const { updateTodo, addTodo } = useTodoStore()
   const { showToast } = useToastStore()
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null)
+  const [showForm, setShowForm] = useState(false)
 
   const combined = useMemo<CombinedItem[]>(() => {
     const my = myTodos.map((t) => ({ todo: t, isOwn: true }))
     const partner = partnerTodos.map((t) => ({ todo: t, isOwn: false }))
     return sortCombined([...my, ...partner])
   }, [myTodos, partnerTodos])
+
+  const handleAdd = async (
+    title: string,
+    category: Todo['category'],
+    assignee: Assignee | null,
+    dueDate: string | null,
+  ) => {
+    try {
+      await addTodo(myUserId, title, category, dueDate, assignee)
+      setShowForm(false)
+      showToast('새로운 할일이 추가됐어요 ✨')
+    } catch {
+      showToast('할일 추가에 실패했습니다', 'error')
+    }
+  }
 
   const handleEdit = async (
     title: string,
@@ -80,6 +102,31 @@ export default function SharedTodoList({
 
   return (
     <div className="flex flex-col gap-4">
+      {/* 인라인 추가 폼 */}
+      {showForm && (
+        <TodoForm
+          onSubmit={handleAdd}
+          onCancel={() => setShowForm(false)}
+        />
+      )}
+
+      {/* 인라인 추가 버튼 — 데스크톱 전용 */}
+      {!showForm && !editingTodo && (
+        <button
+          onClick={() => setShowForm(true)}
+          aria-label="내 할일 추가"
+          className="hidden sm:flex items-center gap-2 w-full min-h-[44px] px-4 py-3 rounded-xl
+            border-2 border-dashed border-orange-200 text-orange-400 text-sm font-medium
+            hover:border-orange-400 hover:text-orange-500 hover:bg-orange-50 transition-all
+            focus:outline-none focus:ring-2 focus:ring-orange-300"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          + 우리 할일 추가
+        </button>
+      )}
+
       {/* 할일 목록 */}
       <div className="flex flex-col gap-2">
         {showSkeleton ? (
@@ -135,6 +182,19 @@ export default function SharedTodoList({
           )
         )}
       </div>
+
+      {/* FAB — 모바일 전용 */}
+      {!showForm && !editingTodo && (
+        <button
+          onClick={() => setShowForm(true)}
+          aria-label="할일 추가"
+          className="fixed bottom-6 right-4 sm:hidden z-30
+            w-14 h-14 rounded-full bg-orange-500 hover:bg-orange-600 active:scale-95
+            text-white shadow-2xl flex items-center justify-center transition-all"
+        >
+          <PlusIcon />
+        </button>
+      )}
     </div>
   )
 }
