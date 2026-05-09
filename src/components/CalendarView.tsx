@@ -3,6 +3,12 @@ import type { Todo } from '../types'
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
 
+const CATEGORY_COLOR: Record<Todo['category'], string> = {
+  업무: 'bg-blue-100 text-blue-700',
+  개인: 'bg-green-100 text-green-700',
+  공부: 'bg-purple-100 text-purple-700',
+}
+
 interface CalendarViewProps {
   myTodos: Todo[]
   partnerTodos: Todo[]
@@ -14,6 +20,8 @@ function toDateStr(year: number, month: number, day: number): string {
   return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
+const MAX_VISIBLE = 2
+
 export default function CalendarView({ myTodos, partnerTodos, onSelectDate, selectedDate }: CalendarViewProps) {
   const today = new Date()
   const [viewYear, setViewYear] = useState(today.getFullYear())
@@ -23,8 +31,17 @@ export default function CalendarView({ myTodos, partnerTodos, onSelectDate, sele
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
   const todayStr = toDateStr(today.getFullYear(), today.getMonth(), today.getDate())
 
-  const myDates = new Set(myTodos.map((t) => t.dueDate).filter(Boolean))
-  const partnerDates = new Set(partnerTodos.map((t) => t.dueDate).filter(Boolean))
+  // 날짜별 할일 맵
+  const todosByDate = new Map<string, { todo: Todo; isPartner: boolean }[]>()
+  const allTodos = [
+    ...myTodos.map((t) => ({ todo: t, isPartner: false })),
+    ...partnerTodos.map((t) => ({ todo: t, isPartner: true })),
+  ]
+  for (const item of allTodos) {
+    if (!item.todo.dueDate) continue
+    if (!todosByDate.has(item.todo.dueDate)) todosByDate.set(item.todo.dueDate, [])
+    todosByDate.get(item.todo.dueDate)!.push(item)
+  }
 
   const prevMonth = () => {
     if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11) }
@@ -44,23 +61,16 @@ export default function CalendarView({ myTodos, partnerTodos, onSelectDate, sele
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       {/* 헤더 */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-        <button
-          onClick={prevMonth}
-          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-          aria-label="이전 달"
-        >
+        <button onClick={prevMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors" aria-label="이전 달">
           <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <span className="text-base font-semibold text-gray-800">
+        <button onClick={() => { setViewYear(today.getFullYear()); setViewMonth(today.getMonth()) }}
+          className="text-base font-semibold text-gray-800 hover:text-orange-500 transition-colors">
           {viewYear}년 {viewMonth + 1}월
-        </span>
-        <button
-          onClick={nextMonth}
-          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-          aria-label="다음 달"
-        >
+        </button>
+        <button onClick={nextMonth} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors" aria-label="다음 달">
           <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
@@ -78,38 +88,54 @@ export default function CalendarView({ myTodos, partnerTodos, onSelectDate, sele
       </div>
 
       {/* 날짜 그리드 */}
-      <div className="grid grid-cols-7">
+      <div className="grid grid-cols-7 divide-x divide-y divide-gray-100">
         {cells.map((day, idx) => {
-          if (!day) return <div key={`empty-${idx}`} className="aspect-square" />
+          if (!day) return <div key={`empty-${idx}`} className="min-h-[80px] bg-gray-50/50" />
 
           const dateStr = toDateStr(viewYear, viewMonth, day)
           const isToday = dateStr === todayStr
           const isSelected = dateStr === selectedDate
-          const hasMyTodo = myDates.has(dateStr)
-          const hasPartnerTodo = partnerDates.has(dateStr)
           const col = idx % 7
+          const items = todosByDate.get(dateStr) ?? []
+          const visible = items.slice(0, MAX_VISIBLE)
+          const overflow = items.length - MAX_VISIBLE
 
           return (
             <button
               key={dateStr}
               onClick={() => onSelectDate(dateStr)}
-              className={`aspect-square flex flex-col items-center justify-center gap-0.5 transition-all
-                hover:bg-orange-50 focus:outline-none focus:bg-orange-50
-                ${isSelected ? 'bg-orange-100' : ''}`}
+              className={`min-h-[80px] p-1 flex flex-col items-stretch text-left transition-colors
+                hover:bg-orange-50 focus:outline-none
+                ${isSelected ? 'bg-orange-50 ring-1 ring-inset ring-orange-300' : ''}`}
             >
-              <span className={`w-7 h-7 flex items-center justify-center rounded-full text-sm font-medium
+              {/* 날짜 숫자 */}
+              <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-semibold mb-0.5 self-center
                 ${isToday ? 'bg-orange-500 text-white' : ''}
-                ${isSelected && !isToday ? 'ring-2 ring-orange-400' : ''}
                 ${!isToday && col === 0 ? 'text-red-400' : ''}
                 ${!isToday && col === 6 ? 'text-blue-400' : ''}
                 ${!isToday && col !== 0 && col !== 6 ? 'text-gray-700' : ''}`}
               >
                 {day}
               </span>
-              {/* 할일 점 표시 */}
-              <div className="flex gap-0.5">
-                {hasMyTodo && <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />}
-                {hasPartnerTodo && <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />}
+
+              {/* 할일 목록 */}
+              <div className="flex flex-col gap-0.5 w-full">
+                {visible.map(({ todo, isPartner }) => (
+                  <div
+                    key={todo.id}
+                    className={`text-[10px] leading-tight px-1 py-0.5 rounded truncate
+                      ${isPartner
+                        ? 'bg-rose-100 text-rose-700'
+                        : CATEGORY_COLOR[todo.category]
+                      }
+                      ${todo.isCompleted ? 'line-through opacity-50' : ''}`}
+                  >
+                    {todo.title}
+                  </div>
+                ))}
+                {overflow > 0 && (
+                  <div className="text-[10px] text-gray-400 px-1">+{overflow}개 더</div>
+                )}
               </div>
             </button>
           )
@@ -117,12 +143,18 @@ export default function CalendarView({ myTodos, partnerTodos, onSelectDate, sele
       </div>
 
       {/* 범례 */}
-      <div className="flex gap-4 px-5 py-3 border-t border-gray-100">
-        <div className="flex items-center gap-1.5 text-xs text-gray-400">
-          <span className="w-2 h-2 rounded-full bg-orange-400" />내 할일
+      <div className="flex flex-wrap gap-3 px-4 py-3 border-t border-gray-100">
+        <div className="flex items-center gap-1 text-[11px] text-gray-400">
+          <span className="w-2.5 h-2.5 rounded-sm bg-blue-100 border border-blue-200" />업무
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-gray-400">
-          <span className="w-2 h-2 rounded-full bg-rose-400" />파트너 할일
+        <div className="flex items-center gap-1 text-[11px] text-gray-400">
+          <span className="w-2.5 h-2.5 rounded-sm bg-green-100 border border-green-200" />개인
+        </div>
+        <div className="flex items-center gap-1 text-[11px] text-gray-400">
+          <span className="w-2.5 h-2.5 rounded-sm bg-purple-100 border border-purple-200" />공부
+        </div>
+        <div className="flex items-center gap-1 text-[11px] text-gray-400">
+          <span className="w-2.5 h-2.5 rounded-sm bg-rose-100 border border-rose-200" />파트너
         </div>
       </div>
     </div>
