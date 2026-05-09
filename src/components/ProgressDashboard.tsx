@@ -12,6 +12,13 @@ function getMotivationalMessage(pct: number): { main: string; sub?: string } {
   return { main: '오늘 할 일을 모두 마쳤어요 🎊', sub: '서로 수고했다고 말해줄까요?' }
 }
 
+function getPartnerMessage(pct: number, name: string): string {
+  if (pct <= 30) return `${name}님, 오늘도 화이팅! 응원해요 💕`
+  if (pct <= 60) return `${name}님 잘 하고 있어요! 응원해요 💕`
+  if (pct <= 90) return `${name}님 거의 다 왔어요! 정말 대단해요 🌟`
+  return `${name}님 오늘 할 일 완료! 정말 수고했어요 🎊`
+}
+
 function CategorySection({ todos, label }: { todos: Todo[]; label: string }) {
   const byCategory = calcCategoryProgress(todos)
   const entries = (Object.entries(byCategory) as [CategoryKey, ReturnType<typeof calcCategoryProgress>[CategoryKey]][])
@@ -40,9 +47,10 @@ interface ProgressDashboardProps {
   ownerName: string
   partnerTodos?: Todo[]
   partnerName?: string
+  isPartner?: boolean
 }
 
-export default function ProgressDashboard({ todos, ownerName, partnerTodos, partnerName }: ProgressDashboardProps) {
+export default function ProgressDashboard({ todos, ownerName, partnerTodos, partnerName, isPartner = false }: ProgressDashboardProps) {
   const isCombined = partnerTodos !== undefined
 
   // ─── 우리 할일 탭: 합산 뷰 ───────────────────────────────────────
@@ -115,18 +123,27 @@ export default function ProgressDashboard({ todos, ownerName, partnerTodos, part
     )
   }
 
+  const barColor = isPartner ? '#ec4899' : '#f97316'
+  const borderClass = isPartner ? 'border-rose-100' : 'border-orange-100'
+
   return (
-    <div className="bg-white rounded-2xl p-6 border border-orange-100 flex flex-col gap-5">
+    <div className={`bg-white rounded-2xl p-6 border ${borderClass} flex flex-col gap-5`}>
       <div>
         <div className="flex items-baseline gap-2 mb-3">
           <span className="text-base font-semibold text-gray-700">전체 진행률</span>
           <span className="text-sm text-gray-400">{overall.completed}/{overall.total} 완료</span>
         </div>
-        <ProgressBar percentage={overall.percentage} label="" color="#f97316" size="lg" />
+        <ProgressBar percentage={overall.percentage} label="" color={barColor} size="lg" />
         <div className="text-center mt-2">
-          <p className="text-xs text-gray-400">{getMotivationalMessage(overall.percentage).main}</p>
-          {getMotivationalMessage(overall.percentage).sub && (
-            <p className="text-xs text-rose-400 mt-0.5">{getMotivationalMessage(overall.percentage).sub}</p>
+          {isPartner ? (
+            <p className="text-xs text-rose-400">{getPartnerMessage(overall.percentage, ownerName)}</p>
+          ) : (
+            <>
+              <p className="text-xs text-gray-400">{getMotivationalMessage(overall.percentage).main}</p>
+              {getMotivationalMessage(overall.percentage).sub && (
+                <p className="text-xs text-rose-400 mt-0.5">{getMotivationalMessage(overall.percentage).sub}</p>
+              )}
+            </>
           )}
         </div>
       </div>

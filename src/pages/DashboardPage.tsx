@@ -217,7 +217,7 @@ export default function DashboardPage() {
         )}
         {activeTab === 'partner' && partner && (
           <>
-            <ProgressDashboard todos={partnerTodos} ownerName={partner.displayName} />
+            <ProgressDashboard todos={partnerTodos} ownerName={partner.displayName} isPartner />
             <TodoList
               todos={partnerTodos}
               userId={partner.uid}
@@ -281,7 +281,7 @@ export default function DashboardPage() {
           {/* 파트너 할일 or 초대 */}
           {partner ? (
             <>
-              <ProgressDashboard todos={partnerTodos} ownerName={partner.displayName} />
+              <ProgressDashboard todos={partnerTodos} ownerName={partner.displayName} isPartner />
               <TodoList
                 todos={partnerTodos}
                 userId={partner.uid}
