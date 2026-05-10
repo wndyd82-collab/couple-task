@@ -177,7 +177,7 @@ export default function DashboardPage() {
         />
       )}
 
-      <main className="lg:hidden max-w-2xl mx-auto px-4 py-6 pb-24 sm:pb-6 flex flex-col gap-5">
+      <main className="lg:hidden w-full max-w-2xl mx-auto px-4 py-6 pb-24 sm:pb-6 flex flex-col gap-5">
         {activeTab === 'shared' && (
           <>
             <ProgressDashboard

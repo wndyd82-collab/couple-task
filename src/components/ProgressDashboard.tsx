@@ -60,14 +60,14 @@ export default function ProgressDashboard({ todos, ownerName, partnerTodos, part
 
     if (allTodos.length === 0) {
       return (
-        <div className="bg-white rounded-2xl p-6 border border-orange-100 text-center">
+        <div className="w-full bg-white rounded-2xl p-6 border border-orange-100 text-center">
           <p className="text-sm text-gray-400">아직 할일이 없어요. 함께 추가해볼까요? 💑</p>
         </div>
       )
     }
 
     return (
-      <div className="bg-white rounded-2xl p-6 border border-orange-100 flex flex-col gap-5">
+      <div className="w-full bg-white rounded-2xl p-6 border border-orange-100 flex flex-col gap-5">
         {/* 헤드라인 */}
         <div className="text-center">
           <p className="text-base font-bold text-gray-800">
@@ -114,7 +114,7 @@ export default function ProgressDashboard({ todos, ownerName, partnerTodos, part
 
   if (todos.length === 0) {
     return (
-      <div className="bg-white rounded-2xl p-6 border border-orange-100 text-center">
+      <div className="w-full bg-white rounded-2xl p-6 border border-orange-100 text-center">
         <div className="text-3xl mb-2">📋</div>
         <p className="text-sm text-gray-400">{ownerName}님의 할일이 없습니다.</p>
       </div>
@@ -126,7 +126,7 @@ export default function ProgressDashboard({ todos, ownerName, partnerTodos, part
     : getMotivationalMessage(overall.percentage)
 
   return (
-    <div className="bg-white rounded-2xl p-6 border border-orange-100 flex flex-col gap-5">
+    <div className="w-full bg-white rounded-2xl p-6 border border-orange-100 flex flex-col gap-5">
       <div>
         <div className="flex items-baseline gap-2 mb-3">
           <span className="text-base font-semibold text-gray-700">전체 진행률</span>

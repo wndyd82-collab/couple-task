@@ -121,7 +121,7 @@ export default function TodoList({
   const showSkeleton = isLoading && todos.length === 0
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="w-full flex flex-col gap-3">
       {/* 카테고리 필터 탭 */}
       <div
         role="tablist"
